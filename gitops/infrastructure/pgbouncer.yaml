@@ -1,0 +1,154 @@
+# PgBouncer — connection pooler đứng trước Postgres (Mandate #2, trụ Reliability + Cost, CDO02).
+#
+# VẤN ĐỀ: 3 service (product-catalog/product-reviews/accounting) chia chung 1 Postgres
+# (max_connections mặc định ~100). Dưới HPA scale (max 8 replicas), tổng connection =
+# replicas × pool/pod × services vượt xa 100 -> cạn max_connections -> vỡ SLO (INC-1).
+#
+# GIẢI PHÁP (Cách C, bền): mọi service nối vào PgBouncer; PgBouncer giữ pool NHỎ cố định
+# (25) tới Postgres ở transaction mode. Postgres LUÔN thấy <= 25 connection bất kể HPA
+# scale bao nhiêu -> tách connection-scaling khỏi replica-scaling, 2 đội hết phải tune chung.
+# Là bước đệm lên RDS Proxy sau này (ADR 0002).
+#
+# KHÔNG có PVC (stateless) nên cluster-autoscaler evict/reschedule tự do -> KHÔNG chặn
+# scale-down (khác datastore có PVC). Availability giữ bằng 2 replica + PDB + anti-affinity.
+#
+# Creds otelu/otelp là creds demo (đã plaintext khắp chart values.yaml) — không phải secret
+# thật kiểu flagd token. Vẫn đặt trong Secret cho gọn.
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pgbouncer-config
+  namespace: techx-tf3
+  labels:
+    app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/component: pgbouncer
+    app.kubernetes.io/part-of: techx-corp
+type: Opaque
+stringData:
+  pgbouncer.ini: |
+    [databases]
+    otel = host=postgresql port=5432 dbname=otel user=otelu password=otelp
+
+    [pgbouncer]
+    listen_addr = 0.0.0.0
+    listen_port = 6432
+    unix_socket_dir =
+    auth_type = md5
+    auth_file = /etc/pgbouncer/userlist.txt
+    # transaction mode: multiplex nhiều client conn lên ít backend -> đúng cho pool bền của
+    # Go/C#/Python (giữ kết nối) + HPA scale. product-catalog (lib/pq QueryContext), product-reviews
+    # (psycopg2), accounting (Npgsql với Max Auto Prepare=0) đều tương thích unnamed statements.
+    pool_mode = transaction
+    max_client_conn = 1000
+    default_pool_size = 25
+    min_pool_size = 5
+    reserve_pool_size = 5
+    server_lifetime = 3600
+    server_idle_timeout = 600
+    # tránh lỗi "unsupported startup parameter" từ 1 số driver
+    ignore_startup_parameters = extra_float_digits,options
+  # md5( password + username ) = md5("otelp"+"otelu"). Client gửi otelp -> PgBouncer đối chiếu.
+  userlist.txt: |
+    "otelu" "md56c9c1773f440b4eeb8a66127f936c2e1"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgbouncer
+  namespace: techx-tf3
+  labels:
+    app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/component: pgbouncer
+    app.kubernetes.io/part-of: techx-corp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pgbouncer
+      app.kubernetes.io/component: pgbouncer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: pgbouncer
+        app.kubernetes.io/component: pgbouncer
+        app.kubernetes.io/part-of: techx-corp
+    spec:
+      # trải 2 replica ra 2 node khác nhau để 1 node chết không mất cả pooler
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/component: pgbouncer
+      containers:
+        - name: pgbouncer
+          # image public — không cần build. Pin tag, reviewer xác nhận trước merge.
+          image: edoburu/pgbouncer:v1.23.1-p2
+          # chạy thẳng với config mount (bỏ qua entrypoint sinh config từ env) cho tất định
+          command: ["pgbouncer", "/etc/pgbouncer/pgbouncer.ini"]
+          ports:
+            - name: pgbouncer
+              containerPort: 6432
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 64Mi
+          readinessProbe:
+            tcpSocket:
+              port: 6432
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 6432
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          volumeMounts:
+            - name: config
+              mountPath: /etc/pgbouncer
+              readOnly: true
+      volumes:
+        - name: config
+          secret:
+            secretName: pgbouncer-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgbouncer
+  namespace: techx-tf3
+  labels:
+    app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/component: pgbouncer
+    app.kubernetes.io/part-of: techx-corp
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/component: pgbouncer
+  ports:
+    - name: pgbouncer
+      port: 6432
+      targetPort: 6432
+      protocol: TCP
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pgbouncer-pdb
+  namespace: techx-tf3
+  labels:
+    app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/component: pgbouncer
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: pgbouncer

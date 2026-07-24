@@ -11,6 +11,12 @@ spec:
     - Ingress
   ingress:
     - from:
+        # PgBouncer là đường vào Postgres chính từ giờ (pooler). 3 service dưới đây giữ tạm
+        # trong lúc transition (env DB host chuyển postgresql -> pgbouncer:6432 có thể sync
+        # không đồng thời); siết còn mỗi pgbouncer ở PR follow-up sau khi mọi pod đã qua pooler.
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: pgbouncer
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: product-catalog

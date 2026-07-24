@@ -214,6 +214,9 @@ components:
     imageOverride: # CDO02 fix main.go - xem comment imageOverride đầu components:
       digest: sha256:412f75faac8b02fc48676c1fe2d3bc695e39b9cf6c0fbd6bb941c1fbea80f83f
       tag: 6a3fe95-product-catalog
+    envOverrides:      # Cách C: nối Postgres qua PgBouncer (xem gitops/infrastructure/pgbouncer.yaml)
+      - name: DB_CONNECTION_STRING
+        value: "postgres://otelu:otelp@pgbouncer:6432/otel?sslmode=disable"
     resources:
       requests:
         cpu: 100m
@@ -633,6 +636,9 @@ components:
     imageOverride: # CDO02 fix database.py + product_reviews_server.py - xem comment imageOverride đầu components:
       digest: sha256:4d5403f3b7beda840dad76b406e1a25f4d1dd90248638930ed4327bdb1517439
       tag: 6a3fe95-product-reviews
+    envOverrides:      # Cách C: nối Postgres qua PgBouncer
+      - name: DB_CONNECTION_STRING
+        value: "host=pgbouncer port=6432 user=otelu password=otelp dbname=otel"
     resources:
       requests:
         cpu: 100m
@@ -683,6 +689,9 @@ components:
     imageOverride: # CDO02 fix Consumer.cs - xem comment imageOverride đầu components:
       digest: sha256:8fc8a91f98ae40d6be284ff9009b32dd0e1e1c3152532362ed363f8bc71c4ed6
       tag: 6a3fe95-accounting
+    envOverrides:      # Cách C: qua PgBouncer. Npgsql cần Max Auto Prepare=0 cho transaction pooling
+      - name: DB_CONNECTION_STRING
+        value: "Host=pgbouncer;Port=6432;Username=otelu;Password=otelp;Database=otel;Max Auto Prepare=0;No Reset On Close=true"
     resources:
       requests:
         cpu: 50m

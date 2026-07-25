@@ -1426,8 +1426,8 @@ components:
       failureThreshold: 3
     replicas: 2        # cổng vào DUY NHẤT (Envoy) — SPOF của toàn hệ thống
     imageOverride: # mandate-01: gỡ route Envoy - xem comment imageOverride đầu components:
-      digest: sha256:6b8243bbf1d91d1bc195703fdbe2e8029a948c38b5717efec8b41ecf1847b3f0
-      tag: 43dcf62-29569108433-frontend-proxy
+      digest: sha256:d128e771ae577431602eda627d22e38d601c444a8b55847c4e3f204389cef4d4
+      tag: c31f892-30096010453-frontend-proxy
     resources:
       requests:
         cpu: 50m

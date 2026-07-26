@@ -1699,15 +1699,18 @@ grafana:
     enabled: false
   grafana.ini:
     auth:
-      disable_login_form: true
+      disable_login_form: false
     auth.anonymous:
-      enabled: true
+      enabled: false
       org_name: Main Org.
-      org_role: Admin
+      org_role: Viewer
     server:
       root_url: "%(protocol)s://%(domain)s:%(http_port)s/grafana"
       serve_from_sub_path: true
-  adminPassword: admin
+  admin:
+    existingSecret: grafana-admin-credentials
+    userKey: admin-user
+    passwordKey: admin-password
   plugins:
     - grafana-opensearch-datasource
   sidecar:

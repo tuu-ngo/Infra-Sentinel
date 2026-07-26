@@ -18,6 +18,11 @@ grafana:
   # hostname riêng. Đánh đổi đã chấp nhận: port-forward localhost:3000 cho Grafana sẽ
   # redirect về hostname này thay vì đứng độc lập (dùng Cloudflare URL thay thế).
   grafana.ini:
+    auth:
+      disable_login_form: false
+    auth.anonymous:
+      enabled: false
+      org_role: Viewer
     server:
       domain: grafana.arthur-ngo.org
       root_url: "%(protocol)s://%(domain)s/"

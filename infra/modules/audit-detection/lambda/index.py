@@ -24,6 +24,9 @@ DEPLOYMENT_LABEL = os.environ.get("DEPLOYMENT_LABEL", "unknown")
 CONFIG = json.loads(os.environ.get("DETECTOR_CONFIG_JSON", "{}"))
 
 GROUP_MAP = {
+    # Group 1 bắt các hành động làm mù audit/log. Đây là tín hiệu critical và
+    # không được bỏ qua chỉ vì actor là automation; thay đổi hợp lệ phải dùng
+    # suppression có phạm vi và thời hạn rõ ràng.
     "cloudtrail:StopLogging": 1,
     "cloudtrail:DeleteTrail": 1,
     "cloudtrail:UpdateTrail": 1,
@@ -31,6 +34,9 @@ GROUP_MAP = {
     "cloudtrail:StartLogging": 1,
     "logs:DeleteLogGroup": 1,
     "logs:PutRetentionPolicy": 1,
+    # Group 2 bắt việc tạo credential hoặc principal mới để mở thêm đường truy
+    # cập. CI/CD hợp lệ vẫn phải để lại tín hiệu hoặc dùng suppression có thời
+    # hạn thay vì allowlist vĩnh viễn.
     "iam:CreateAccessKey": 2,
     "iam:CreateUser": 2,
     "iam:CreateRole": 2,

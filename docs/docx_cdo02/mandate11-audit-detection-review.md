@@ -519,3 +519,12 @@ Các guardrail quan trọng:
 - không giữ retention vô hạn cho Lambda log và detector log trên CloudWatch.
 
 Thời gian retention ngắn như 14 đến 30 ngày thường là đủ, trừ khi có yêu cầu lưu trữ audit riêng.
+
+---
+
+## 9. Tài liệu xác minh và retry follow-up
+
+- [Xác minh tĩnh Group 1 và Group 2](mandate11-group1-group2-verification.md): đối chiếu event catalog, EventBridge rule, Lambda mapping, severity, cảnh báo và các blocker phải đóng trước runtime acceptance.
+- [Thiết kế Lambda retry và xử lý sự kiện lỗi](mandate11-lambda-retry-design.md): tách retry EventBridge/Lambda, DLQ, IAM, idempotency, monitoring, replay và kế hoạch kiểm thử sau khi hạ tầng sẵn sàng.
+
+Hai tài liệu follow-up trên không thay thế bằng chứng chạy thật. Trạng thái chỉ được đổi sang `VERIFIED` sau khi có CloudTrail event, Lambda log, SNS email và số liệu TTD đầu-cuối từ môi trường đã deploy.

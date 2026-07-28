@@ -1,0 +1,121 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowBaselineWithinBoundary",
+      "Effect": "Allow",
+      "Action": "*",
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyAnyAccessToProtectedTrail",
+      "Effect": "Deny",
+      "Action": "cloudtrail:*",
+      "Resource": "<audit-trail-arn>"
+    },
+    {
+      "Sid": "DenyAnyAccessToAuditArchive",
+      "Effect": "Deny",
+      "Action": "s3:*",
+      "Resource": [
+        "<audit-bucket-arn>",
+        "<audit-bucket-arn>/*"
+      ]
+    },
+    {
+      "Sid": "DenyAuditEventRuleMutation",
+      "Effect": "Deny",
+      "Action": "events:*",
+      "Resource": [
+        "<trail-rule-arn>",
+        "<trail-selectors-rule-arn>",
+        "<bucket-rule-arn>",
+        "<event-rule-rule-arn>",
+        "<event-target-rule-arn>",
+        "<sns-topic-rule-arn>",
+        "<sns-subscription-rule-arn>",
+        "<global-iam-rule-arn>",
+        "<global-event-rule-rule-arn>",
+        "<global-event-target-rule-arn>",
+        "<global-sns-topic-rule-arn>",
+        "<global-sns-subscription-rule-arn>"
+      ]
+    },
+    {
+      "Sid": "DenyAuditTopicAndSubscriptionMutation",
+      "Effect": "Deny",
+      "Action": "sns:*",
+      "Resource": [
+        "<alert-topic-arn>",
+        "<global-alert-topic-arn>",
+        "<alert-subscription-arn>",
+        "<global-alert-subscription-arn>"
+      ]
+    },
+    {
+      "Sid": "DenyIamPrivilegeAndCredentialMutation",
+      "Effect": "Deny",
+      "Action": [
+        "iam:Add*",
+        "iam:Attach*",
+        "iam:ChangePassword",
+        "iam:Create*",
+        "iam:Deactivate*",
+        "iam:Delete*",
+        "iam:Detach*",
+        "iam:Enable*",
+        "iam:PassRole",
+        "iam:Put*",
+        "iam:Remove*",
+        "iam:ResetServiceSpecificCredential",
+        "iam:ResyncMFADevice",
+        "iam:SetDefaultPolicyVersion",
+        "iam:Tag*",
+        "iam:Untag*",
+        "iam:Update*",
+        "iam:Upload*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyInstanceProfileRoleEscalation",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:AssociateIamInstanceProfile",
+        "ec2:ReplaceIamInstanceProfileAssociation"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyAssumeProtectedAuditRoles",
+      "Effect": "Deny",
+      "Action": [
+        "sts:AssumeRole",
+        "sts:AssumeRoleWithSAML",
+        "sts:AssumeRoleWithWebIdentity"
+      ],
+      "Resource": [
+        "<audit-admin-role-arn>",
+        "<breakglass-role-arn>"
+      ]
+    },
+    {
+      "Sid": "DenyAssumeRoleOutsideExplicitAllowlist",
+      "Effect": "Deny",
+      "Action": [
+        "sts:AssumeRole",
+        "sts:AssumeRoleWithSAML",
+        "sts:AssumeRoleWithWebIdentity"
+      ],
+      "NotResource": [
+        "<approved-non-audit-role-arn-1>"
+      ]
+    },
+    {
+      "Sid": "DenyFederationTokenSessionCreation",
+      "Effect": "Deny",
+      "Action": "sts:GetFederationToken",
+      "Resource": "*"
+    }
+  ]
+}

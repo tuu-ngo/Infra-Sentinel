@@ -1,0 +1,17 @@
+# Thay toàn bộ placeholder bằng giá trị đã được owner phê duyệt trước plan/apply.
+# Bucket phải MỚI và duy nhất toàn cầu vì Object Lock chỉ bật được khi tạo bucket.
+audit_bucket_name = "tf3-m12-audit-197826770971-<unique-suffix>"
+trail_name        = "tf3-m12-audit"
+retention_days    = 365
+
+# Do not change: CloudTrail records IAM/STS/CloudFront global-service events in us-east-1.
+global_event_region = "us-east-1"
+
+# Bắt buộc: chỉ dùng bucket/prefix dữ liệu nhạy cảm đã có approval bằng văn bản.
+# Không dùng Terraform state, audit archive hay dữ liệu canary làm production scope.
+s3_data_event_arns = [
+  "arn:aws:s3:::<approved-sensitive-bucket>/<approved-prefix>/"
+]
+
+# Bắt buộc: người chịu trách nhiệm phải xác nhận subscription sau apply.
+alert_email = "<security-owner-email>" # Confirm both regional SNS subscriptions after apply.

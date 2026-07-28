@@ -1,0 +1,7 @@
+# Lấy bucket, DynamoDB lock table và region từ backend đang được phê duyệt.
+# Key này phải mới; tuyệt đối không dùng key của infra/live/production.
+bucket         = "<approved-existing-tfstate-bucket>"
+key            = "mandate-12/audit/terraform.tfstate"
+region         = "ap-southeast-1"
+dynamodb_table = "<approved-existing-lock-table>"
+encrypt        = true

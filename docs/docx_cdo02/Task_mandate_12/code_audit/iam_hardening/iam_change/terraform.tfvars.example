@@ -1,0 +1,18 @@
+# Copy to terraform.tfvars only in the approved deployment workspace.
+# This root is deployed only after the rendered operator boundary managed policy exists.
+
+name_prefix                  = "tf3-m12"
+operator_boundary_policy_arn = "arn:aws:iam::197826770971:policy/REPLACE_WITH_RENDERED_OPERATOR_BOUNDARY"
+
+target_user_arns = [
+  "arn:aws:iam::197826770971:user/REPLACE_WITH_DAILY_OPERATOR"
+]
+
+target_role_arns = []
+
+trusted_change_owner_arns = [
+  "arn:aws:iam::197826770971:user/REPLACE_WITH_SECURITY_OWNER"
+]
+
+# Keep false in normal operation. A separate approved rollback change is required to set true.
+allow_boundary_removal = false

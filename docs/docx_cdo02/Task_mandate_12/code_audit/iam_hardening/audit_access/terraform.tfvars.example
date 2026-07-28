@@ -1,0 +1,32 @@
+# Copy to terraform.tfvars only in the approved deployment workspace.
+# Never commit terraform.tfvars if it contains people/role identifiers not intended for the repository.
+
+name_prefix     = "tf3-m12"
+audit_bucket_arn = "arn:aws:s3:::REPLACE_WITH_AUDIT_BUCKET"
+audit_trail_arn  = "arn:aws:cloudtrail:ap-southeast-1:197826770971:trail/tf3-m12-audit"
+
+alert_topic_arns = [
+  "arn:aws:sns:ap-southeast-1:197826770971:REPLACE_WITH_alert_topic_arn",
+  "arn:aws:sns:us-east-1:197826770971:REPLACE_WITH_global_alert_topic_arn"
+]
+
+audit_rule_arns = [
+  "arn:aws:events:ap-southeast-1:197826770971:rule/REPLACE_WITH_trail",
+  "arn:aws:events:ap-southeast-1:197826770971:rule/REPLACE_WITH_trail_selectors",
+  "arn:aws:events:ap-southeast-1:197826770971:rule/REPLACE_WITH_bucket",
+  "arn:aws:events:ap-southeast-1:197826770971:rule/REPLACE_WITH_event_rule",
+  "arn:aws:events:ap-southeast-1:197826770971:rule/REPLACE_WITH_event_target",
+  "arn:aws:events:ap-southeast-1:197826770971:rule/REPLACE_WITH_sns_topic",
+  "arn:aws:events:ap-southeast-1:197826770971:rule/REPLACE_WITH_sns_subscription",
+  "arn:aws:events:us-east-1:197826770971:rule/REPLACE_WITH_global_iam",
+  "arn:aws:events:us-east-1:197826770971:rule/REPLACE_WITH_global_event_rule",
+  "arn:aws:events:us-east-1:197826770971:rule/REPLACE_WITH_global_event_target",
+  "arn:aws:events:us-east-1:197826770971:rule/REPLACE_WITH_global_sns_topic",
+  "arn:aws:events:us-east-1:197826770971:rule/REPLACE_WITH_global_sns_subscription"
+]
+
+trusted_principal_arns = [
+  "arn:aws:iam::197826770971:user/REPLACE_WITH_SECURITY_OWNER"
+]
+
+require_mfa = true

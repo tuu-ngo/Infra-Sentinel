@@ -1,0 +1,8 @@
+# Copy to backend.hcl only in the approved deployment workspace.
+# Use an existing, approved Terraform state bucket/table. Do not create them in this change.
+
+bucket         = "REPLACE_WITH_APPROVED_TFSTATE_BUCKET"
+key            = "mandate-12/iam-change/terraform.tfstate"
+region         = "ap-southeast-1"
+dynamodb_table = "REPLACE_WITH_APPROVED_TFSTATE_LOCK_TABLE"
+encrypt        = true

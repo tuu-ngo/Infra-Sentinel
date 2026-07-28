@@ -89,3 +89,12 @@ module "edge" {
   edge_phase                  = var.edge_phase
   cloudfront_staging_selector = var.cloudfront_staging_selector
 }
+
+resource "aws_security_group_rule" "bad_ssh" {
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.frontend.id # Hoặc bất kỳ biến SG ID nào có sẵn
+}

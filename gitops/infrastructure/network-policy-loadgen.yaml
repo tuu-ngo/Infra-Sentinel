@@ -1,0 +1,12 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: loadgen-deny-ingress
+  namespace: techx-tf3
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: load-generator
+  policyTypes:
+  - Ingress
+  # Block mọi Ingress (traffic đi vào) đối với load-generator vì nó chỉ đóng vai trò đẩy tải ra ngoài

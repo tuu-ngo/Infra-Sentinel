@@ -8,11 +8,14 @@
 
 **Mức độ:** suy giảm một tính năng không critical; chưa có bằng chứng storefront/checkout bị downtime
 
-**Trạng thái:** nguyên nhân sự cố đã khoanh vùng; **P2 và một phần P3 đã được ĐỀ XUẤT qua
-[PR #531](https://github.com/tuu-ngo/Phase3-TF3-Infra-Sentinel/pull/531) (xem §11) — PR chưa merge, chưa
-build image, chưa deploy, KHÔNG có gì đang chạy trên cluster/production khác với trước**. P0/P1/P4/P5 và
-phần còn lại của P3 (tách executor/deployment AI riêng thật) **vẫn chưa làm** — incident **chưa đủ điều
-kiện đóng** theo §8.
+**Trạng thái:** nguyên nhân sự cố đã khoanh vùng; **P2 + admission-control cho P3 đã LIVE trên production**
+(28/07/2026 — [PR #531](https://github.com/tuu-ngo/Phase3-TF3-Infra-Sentinel/pull/531) merge → build → bump-image
+[#535](https://github.com/tuu-ngo/Phase3-TF3-Infra-Sentinel/pull/535)/[#538](https://github.com/tuu-ngo/Phase3-TF3-Infra-Sentinel/pull/538)
+merge → ArgoCD Synced/Healthy, verify qua `kubectl` — xem §11.4). **P4 đã đo bằng dữ liệu thật (§12). P0 +
+P1 đã thực hiện bằng load test có kiểm soát trên production, capacity-arrival gap tái hiện được và fix
+hoạt động đúng thiết kế; phát hiện thêm root cause AI chậm là AWS Bedrock throttle, không phải bug
+product-reviews (§13).** **P3 đầy đủ (tách executor/deployment AI riêng thật) và P5 (deadline review theo
+p99) vẫn CHƯA làm** — incident **chưa đủ điều kiện đóng** theo §8, nhưng phần lớn evidence đã đủ.
 
 **Loại thay đổi của tài liệu này:** ban đầu docs-only; §11 bổ sung 28/07/2026 mô tả một PR code đề xuất
 P2 + admission-control nội-process cho P3 (không đổi manifest/HPA/cluster — chỉ app code). PR đã qua một
@@ -583,10 +586,162 @@ cho khớp thuật ngữ.
 Commit sửa vòng 2 + test (biên dịch/chạy `Request.ts` cũ và mới chống 1 HTTP server thật, `tsc --noEmit`,
 `next build`, live functional test qua `PRODUCT_REVIEWS_ADDR` đen) — không regression.
 
+### 11.4 Deploy thật (28/07/2026) — PR #531 + #533 (Trivy CVE) + #535/#538 (bump-image) đã merge
+
+PR #531 (P2 + admission control) đã được review và merge vào `main`. Build image sau merge fail Trivy
+gate vì 2 CVE HIGH sẵn có trong dependency (không liên quan code sửa): `brace-expansion` (CVE-2026-14257)
+và `postcss` (GHSA-r28c-9q8g-f849) — cả 2 đã có bản vá, xử lý ở PR #533 (bump version qua `overrides` có
+sẵn trong `package.json`). Build lại pass. Bot tạo PR bump-image #535 (`frontend`) và #538 (`product-reviews`,
+phải trigger `workflow_dispatch` scoped thủ công vì lần build đầu fail ở job `frontend` khiến job tạo PR bị
+skip dù `build-scan (product-reviews)` đã pass). Cả 2 đã merge, ArgoCD auto-sync **Synced/Healthy**, verify
+trực tiếp trên cluster (`kubectl`, profile read-only `nvtank-readonly`): `frontend` 3/3 Ready 0 restart
+(HPA đang scale theo CPU, không liên quan), `product-reviews` 2/2 Ready 0 restart, storefront CloudFront
+vẫn `200`. **P2 + admission control giờ đã LIVE trên production.**
+
+## 12. P4 — đo startup/readiness thật (28/07/2026, dữ liệu từ chính đợt rollout trên)
+
+Tận dụng đúng lúc rollout PR #531 lên production để đo P4 bằng dữ liệu thật thay vì suy đoán (nguồn:
+`kubectl get events`/`get pod -o json` qua tunnel SSM, profile read-only).
+
+### 12.1 Time-to-Ready breakdown — 2 pod đầu của `product-reviews`
+
+| Pod | Created→Scheduled (pending) | Pulling→Pulled | Started→Ready (app+probe) | **Tổng Created→Ready** |
+|---|---|---|---|---|
+| `...4d5wp` (pod đầu tiên) | **39s** (2 lần `FailedScheduling`: topology spread + taint + node affinity, phải chờ Karpenter tạo node mới) | 11.7s | 22s | **77s** |
+| `...vrxqm` (pod thứ hai) | **0s** (schedule tức thì — node từ Karpenter đã sẵn) | 5.6s | 21s | **29s** |
+
+**Bằng chứng trực tiếp cho khuyến nghị P1 (pre-scale):** pod ĐẦU của một scale event mất 77s để Ready,
+chủ yếu do phải chờ Karpenter launch node mới từ đầu (`elastic-ondemand-fallback-4lmlh`, node
+`ip-10-0-37-137` — instance `t3a.medium`, `capacity-type: on-demand`, tức Karpenter fallback từ spot sang
+on-demand lúc đó). Pod THỨ HAI, chạy ngay sau khi node đã tồn tại, chỉ mất 29s — nhanh hơn 2.7 lần. Đây
+đúng là cơ chế P1 khai thác: pre-scale trước khi bắn tải để "trả phí" node-provisioning TRƯỚC cửa sổ đo,
+không phải trong lúc đo.
+
+### 12.2 So sánh với `frontend`
+
+| Pod | Created→Scheduled | Pulling→Pulled | Started→Ready | Tổng |
+|---|---|---|---|---|
+| `...d4vlw` | 0s | 18.3s | 12s | 32s |
+| `...v79n7` | 0s | 18.2s | 11s | 31s |
+
+`frontend` không bị pending (schedule tức thì cả 2 lần) nhưng pull image chậm hơn `product-reviews` rõ
+rệt (~18s vs ~6-12s) — image `frontend` nặng hơn nhiều (227MB vs 65MB). App-start-to-Ready của `frontend`
+(~11-12s) cũng nhanh hơn `product-reviews` (~21-22s) — hợp lý vì `product-reviews` init nhiều hơn (gRPC
+server, Bedrock client, DB connection pool, flagd provider).
+
+### 12.3 Node headroom lúc đo
+
+`kubectl top nodes` lúc đo: CPU 1-19%, memory 3-58% trên các node hiện có — khớp với ghi nhận cost-review
+trước đó (cluster ~45% CPU **request** nhưng chỉ ~6.7% dùng thật). Nghĩa là nút thắt của time-to-Ready
+**không phải** thiếu CPU/memory trên node hiện có, mà là **thiếu sẵn 1 node mới khi cần** — đúng bản chất
+"capacity-arrival gap" §3 đã kết luận, giờ có số đo thật xác nhận thay vì suy luận định tính.
+
+### 12.4 Chưa đo được (cần thêm)
+
+- Connection distribution giữa các pod gRPC (P4 gốc có đề cập) — cần Prometheus/Grafana query per-pod
+  request rate trong lúc có tải thật, chưa làm ở đợt này vì không có tải đủ lớn tại thời điểm rollout.
+- Startup breakdown chi tiết BÊN TRONG container (`product-reviews` mất 21-22s giữa Started và Ready —
+  chưa tách được bao nhiêu là app init code chạy thật vs. bao nhiêu là do `readinessProbe`
+  `initialDelaySeconds:5, periodSeconds:10` tự nó làm chậm phép đo, vd. app có thể Ready ở giây thứ 16
+  nhưng probe attempt tiếp theo chỉ rơi vào giây 25 → số đo Ready là do lịch probe, không phải do app
+  chậm). Cần thêm log timestamp "server started" bên trong app để tách 2 nguyên nhân.
+
+## 13. P0 + P1 — load test có kiểm soát trên production (28/07/2026)
+
+Thực hiện đúng runbook §7: preflight → PR pre-scale (P1) → chờ Ready → chạy Locust theo từng stage, không
+đổi biến giữa stage mà không ghi lại → lưu evidence → revert pre-scale.
+
+### 13.1 Preflight (§7.1)
+
+Trước khi đổi gì: `frontend` 2/2 Ready, `product-reviews` 2/2 Ready, không restart bất thường, PDB
+(`frontend-pdb`, `product-reviews-pdb`, `frontend-proxy-pdb`) đều `minAvailable:1`, không có ArgoCD sync
+nào đang chạy (`Synced`/`Healthy`), không rollout nào khác đang diễn ra. Đạt điều kiện bắt đầu.
+
+### 13.2 P1 — pre-scale
+
+PR [#543](https://github.com/tuu-ngo/Phase3-TF3-Infra-Sentinel/pull/543): `product-reviews-hpa.minReplicas`
+2→3, đánh dấu tạm thời ngay trong annotation. Merge xong, ArgoCD sync tới đúng revision (verify bằng
+`status.sync.revision` khớp `git rev-parse origin/main`), chờ `kubectl rollout status` — pod thứ 3
+(`product-reviews-67bbd5c84f-nw6qv`) lên `3/3 Ready`, 0 restart. Đạt điều kiện §7.2 bước 3 trước khi bắn
+tải.
+
+### 13.3 Locust — 3 stage, dùng REST API của load-generator (`kubectl port-forward svc/load-generator 8089`,
+không qua route public — đúng Mandate #1)
+
+| Stage | Users | Spawn rate | Thời lượng | RPS đo được | `fail/s` | CPU product-reviews | HPA |
+|---|---|---|---|---|---|---|---|
+| 1 | 60 | 3/s | 3 phút | ~14-17 | **0.0 suốt** | 19-40% | không scale (3/3 giữ nguyên) |
+| 2 | 200 | 10/s | 6 phút | ~38-45 | **0.0 suốt** | 25-45% | không scale (3/3 giữ nguyên) |
+| 3 | 500 | 20/s | 7 phút | ~92-118 | 0-0.6 (đỉnh lúc scale) | tới **94%/75%** | **scale 3→4** (HPA `SuccessfulRescale`) |
+
+Stage 1+2 hoàn toàn sạch (0 lỗi cả 2 cửa sổ) — hệ thống hấp thụ tốt tới 200 user đồng thời sau khi CPU
+request tăng 100m→150m (commit `a19174e`) làm HPA "khó" scale hơn trước (cần tải lớn hơn mới chạm 75%
+target so với lúc incident gốc).
+
+### 13.4 Stage 3 — tái hiện đúng capacity-arrival gap, fix hoạt động đúng thiết kế
+
+Ở 500 user, CPU vượt target → HPA scale `product-reviews` 3→4. Pod thứ 4
+(`product-reviews-67bbd5c84f-6pvx4`) đi qua đúng chuỗi sự kiện như §12 đã đo: `FailedScheduling` (topology
+spread + taint + node affinity) → Karpenter tạo node mới (`elastic-ondemand-fallback-grsxp`) →
+`Scheduled` sau ~16-18s → pull image 11.8s → `Started` → readiness probe fail lần đầu → **Ready sau ~69s
+kể từ lúc bắt đầu FailedScheduling** — khớp tầm với con số 77s ở §12 (chênh lệch do node headroom sẵn có
+khác nhau giữa 2 lần đo). Trong đúng cửa sổ pod thứ 4 chưa Ready, `fail/s` nhích lên 0.3-0.6 rồi về 0 ngay
+khi pod Ready — **đúng cơ chế "capacity-arrival gap" §3 mô tả, tái hiện được bằng tải thật**.
+
+Khác biệt quan trọng so với sự cố gốc: lỗi trong cửa sổ này được client Locust ghi nhận là
+**`503 Service Unavailable` cho `/api/product-reviews/*`** (xác nhận qua `stats/requests` API của Locust
+lẫn log `product-reviews` — không thấy `500` mới nào phát sinh sau lúc deploy), đúng route `catch` mới
+thêm ở P2 — **không còn rơi về `500` không phân loại như trước khi vá**. `checkout`, `cart`,
+`product-catalog` (`kubectl get pod`) **0 restart suốt cả 3 stage**.
+
+### 13.5 Phát hiện mới (ngoài phạm vi §6 gốc): AWS Bedrock throttle, không phải bug product-reviews
+
+Đọc log `product-reviews` (`kubectl logs`) trong đúng cửa sổ Stage 3, thấy rõ:
+
+```text
+WARNING [guardrails.fallback] - Retrying __main__.call_candidate_bedrock in 0.4s seconds as it raised
+ThrottlingException: An error occurred (ThrottlingException) when calling the Converse operation
+(reached max retries: 4): Too many requests, please wait before trying again.
+```
+
+Đây là **AWS Bedrock tự giới hạn tốc độ (rate limit) trên API `Converse`** khi nhiều câu hỏi AI gửi đồng
+thời — không phải lỗi ở code product-reviews. Giải thích đúng lý do trace `ask_product_ai_assistant`
+trong Jaeger mất 15-25 giây (gần sát `PRODUCT_AI_DEADLINE_MS=15000`) và có nhiều span lỗi: mỗi lần
+`ThrottlingException` là 1 lần retry (`tenacity`, decorator `@with_fallback`) trước khi rơi về
+`FALLBACK_SUMMARY_MESSAGE`. **Đây KHÔNG làm hỏng trải nghiệm người dùng** — `AskProductAIAssistant` luôn
+trả response hợp lệ (thật hoặc fallback), không phải lỗi HTTP.
+
+**Bằng chứng admission control (PR #531) đang hoạt động đúng thiết kế dưới tải thật:** cùng cửa sổ, log
+xuất hiện lặp lại hàng trăm dòng:
+
+```text
+WARNING - AskProductAIAssistant: concurrency limit (4) reached, shedding load for product_id:X
+```
+
+Xác nhận cơ chế semaphore cap=4 đang chủ động shed bớt request AI dư thay vì để tất cả dồn vào Bedrock
+(vốn đã throttle) làm tình hình tệ hơn — đúng mục đích thiết kế ở §11.1.
+
+### 13.6 Dọn dẹp sau test
+
+Dừng Locust (`/stop`) rồi swarm lại baseline. Revert PR
+[#545](https://github.com/tuu-ngo/Phase3-TF3-Infra-Sentinel/pull/545): `product-reviews-hpa.minReplicas`
+3→2, đúng kế hoạch tạm thời đã ghi ở PR #543 (không giữ làm baseline mới nếu không có evidence riêng cho
+việc đó).
+
 ### Còn thiếu để đóng incident theo §8
 
-P0 (evidence pack tái tạo được), P1 (pre-scale runbook cho lần load test kế tiếp), P3 đầy đủ (tách
-executor/deployment AI riêng thật + canary — §11.1 blocker 1 cho thấy đây KHÔNG phải optional, admission
-control không đủ dưới backlog lớn), P4 (đo startup/readiness, connection distribution), P5 (deadline
-review theo p99 đo được) — **chưa làm trong lần này**, cần PR/runbook riêng theo đúng thứ tự §6 (thêm
-capacity trước, không đổi nhiều biến cùng lúc). PR #531 vẫn cần review từ người trước khi merge.
+- ✅ P0 — evidence pack thật đã lấy (§13): Locust config/kết quả từng stage, Events/HPA đúng cửa sổ, log
+  `product-reviews` xác nhận nguyên nhân (Bedrock throttle) tách biệt khỏi capacity-arrival gap.
+- ✅ P1 — đã áp dụng thật cho lần load test này (§13.2), đã revert sau khi xong (§13.6).
+- ✅ P4 — đã đo (§12), dữ liệu thật.
+- **P3 đầy đủ** (tách executor/deployment AI riêng thật + canary) — **vẫn CHƯA làm, vẫn là việc quan
+  trọng nhất còn lại**. §11.1 blocker 1 + §13.4/§13.5 giờ có bằng chứng kép: admission control giảm thiệt
+  hại nhưng (a) không đảm bảo cô lập dưới backlog lớn (§11.1), và (b) root cause thật của độ trễ AI là
+  Bedrock rate limit — tách AI ra service/executor riêng sẽ giúp cấu hình concurrency/backoff cho path AI
+  độc lập khỏi path đọc nhanh, không phải chỉ giảm blast radius.
+- **P5** (deadline review) — giờ CÓ số liệu thật để làm: p95/p99 của Stage 2 (200 user, sạch) làm baseline
+  "khoẻ mạnh", so với Stage 3 (500 user, có capacity-arrival gap) để quyết định deadline hợp lý — **chưa
+  làm phép tính chính thức**, cần trích p95/p99 chính xác từ Locust CSV (chưa export) thay vì chỉ nhìn
+  RPS/fail tổng hợp đã ghi ở đây.
+- Nên xin quota tăng cho Bedrock `Converse` API (§13.5) nếu muốn AI assistant chịu được tải tương đương
+  Stage 3 mà không throttle — việc này ngoài phạm vi CDO02/postmortem này (thuộc AIO02).

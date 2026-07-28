@@ -17,6 +17,12 @@ kubeconfig*
 *.p12
 llm-api-key*
 
+# --- Local review artifacts ---
+review.md
+review-kubeconfig.tmp
+port-forward.out.log
+port-forward.err.log
+
 # --- Terraform: state and local overrides never get committed ---
 **/.terraform/
 *.tfstate

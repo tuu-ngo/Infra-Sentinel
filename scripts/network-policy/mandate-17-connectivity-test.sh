@@ -9,6 +9,8 @@ NS="${NAMESPACE:-techx-tf3}"
 ARGO_NS="${ARGO_NAMESPACE:-argocd}"
 URL="${STOREFRONT_URL:-https://d2tn71186d7ilz.cloudfront.net/}"
 TIMEOUT="${TIMEOUT_SECONDS:-5}"
+PRODUCT_REVIEWS_RDS_HOST="${PRODUCT_REVIEWS_RDS_HOST:-techx-tf3-postgres.czwcs2ocww3q.ap-southeast-1.rds.amazonaws.com}"
+PRODUCT_REVIEWS_VALKEY_HOST="${PRODUCT_REVIEWS_VALKEY_HOST:-master.techx-tf3-valkey.pkeslh.apse1.cache.amazonaws.com}"
 MODE="${1:-}"
 POLICY="${2:-}"
 POLICY="$(printf '%s' "$POLICY" | sed 's/\.yaml$//')"
@@ -66,8 +68,8 @@ pod_for() {
     grafana|jaeger|prometheus|opensearch|cloudflared)
       selector="app.kubernetes.io/name=$service"
       ;;
-    aiops-engine)
-      selector="app=aiops-engine"
+    aiops-engine|shopping-copilot)
+      selector="app=$service"
       ;;
     *)
       selector="app.kubernetes.io/component=$service"
@@ -224,6 +226,14 @@ tcp 06-cloudflared cloudflared-to-proxy cloudflared frontend-proxy 8080 allow
 tcp 06-cloudflared cloudflared-to-payment cloudflared payment 8080 deny
 tcp 07-aiops-engine aiops-to-prometheus aiops-engine prometheus 9090 allow
 tcp 07-aiops-engine aiops-to-payment aiops-engine payment 8080 deny
+tcp 32-product-reviews frontend-to-reviews frontend product-reviews 3551 allow
+tcp 32-product-reviews copilot-to-reviews shopping-copilot product-reviews 3551 allow
+tcp 32-product-reviews checkout-to-reviews checkout product-reviews 3551 deny
+tcp 32-product-reviews reviews-to-catalog product-reviews product-catalog 8080 allow
+tcp 32-product-reviews reviews-to-flagd product-reviews flagd 8013 allow
+tcp 32-product-reviews reviews-to-otel product-reviews otel-gateway 4317 allow
+tcp 32-product-reviews reviews-to-rds product-reviews "$PRODUCT_REVIEWS_RDS_HOST" 5432 allow
+tcp 32-product-reviews reviews-to-valkey product-reviews "$PRODUCT_REVIEWS_VALKEY_HOST" 6379 allow
 https_test 32-product-reviews reviews-to-bedrock product-reviews https://bedrock-runtime.us-east-1.amazonaws.com allow
 https_test 33-checkout checkout-to-internet checkout https://example.com deny
 https_test 90-default-deny-all cart-to-internet cart https://example.com deny

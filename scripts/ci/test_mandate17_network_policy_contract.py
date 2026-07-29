@@ -512,6 +512,43 @@ def test_product_catalog_has_observed_service_and_rds_peers():
     )
 
 
+def test_product_reviews_has_observed_callers_services_and_datastores():
+    product_reviews = load_policy("32-product-reviews.yaml")
+    private_subnets = {"10.0.0.0/20", "10.0.16.0/20", "10.0.32.0/20"}
+
+    assert ingress_ports_from_source(product_reviews, "frontend") == {3551}
+    assert ingress_ports_from_source(product_reviews, "shopping-copilot") == {
+        3551
+    }
+    assert ingress_ports_from_source(product_reviews, "checkout") == set()
+    assert ipblocks_for_egress_port(product_reviews, 53) == {"172.20.0.10/32"}
+    assert ipblocks_for_egress_port(product_reviews, 8080) == {
+        "172.20.145.185/32"
+    }
+    assert ipblocks_for_egress_port(product_reviews, 8013) == {
+        "172.20.213.30/32"
+    }
+    assert ipblocks_for_egress_port(product_reviews, 4317) == {
+        "172.20.117.175/32"
+    }
+    assert ipblocks_for_egress_port(product_reviews, 5432) == private_subnets
+    assert ipblocks_for_egress_port(product_reviews, 6379) == private_subnets
+    assert ipblocks_for_egress_port(product_reviews, 443) == {"0.0.0.0/0"}
+    annotations = product_reviews["metadata"]["annotations"]
+    assert annotations["mandate-17.techx.io/service-clusterip-evidence"] == (
+        "2026-07-29:kube-dns=172.20.0.10,"
+        "product-catalog=172.20.145.185,flagd=172.20.213.30,"
+        "otel-gateway=172.20.117.175"
+    )
+    assert annotations["mandate-17.techx.io/managed-datastore-evidence"] == (
+        "2026-07-29:rds-and-valkey-in-private-subnets="
+        "10.0.0.0/20,10.0.16.0/20,10.0.32.0/20"
+    )
+    assert annotations["mandate-17.techx.io/ingress-caller-evidence"] == (
+        "2026-07-29:frontend-and-shopping-copilot-to-product-reviews:3551"
+    )
+
+
 def test_jaeger_accepts_otel_gateway_grpc_ingest():
     jaeger = load_policy("02-jaeger.yaml")
     matching_ports = set()

@@ -362,6 +362,7 @@ Allowed:
 
 - product-catalog
 - its PostgreSQL datastore
+- its ElastiCache Valkey guardrail cache
 - flagd runtime reads
 - observability telemetry
 - AWS Bedrock through the approved production provider
@@ -369,6 +370,7 @@ Allowed:
 Incoming approved caller:
 
 - frontend
+- shopping-copilot
 
 Not allowed:
 

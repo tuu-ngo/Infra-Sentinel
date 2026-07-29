@@ -4,9 +4,12 @@ metadata:
   name: product-reviews-business-policy
   namespace: techx-tf3
   annotations:
-    mandate-17.techx.io/public-egress-exception: "Bedrock HTTPS via IRSA"
+    mandate-17.techx.io/public-egress-exception: "temporary Bedrock and regional STS HTTPS via IRSA"
     mandate-17.techx.io/promotion-blocked: "true"
-    mandate-17.techx.io/promotion-blocker: "replace broad HTTPS egress with FQDN-aware Bedrock control"
+    mandate-17.techx.io/promotion-blocker: "replace broad HTTPS egress with FQDN-aware control and pass runtime connectivity tests"
+    mandate-17.techx.io/service-clusterip-evidence: "2026-07-29:kube-dns=172.20.0.10,product-catalog=172.20.145.185,flagd=172.20.213.30,otel-gateway=172.20.117.175"
+    mandate-17.techx.io/managed-datastore-evidence: "2026-07-29:rds-and-valkey-in-private-subnets=10.0.0.0/20,10.0.16.0/20,10.0.32.0/20"
+    mandate-17.techx.io/ingress-caller-evidence: "2026-07-29:frontend-and-shopping-copilot-to-product-reviews:3551"
 spec:
   podSelector:
     matchLabels:
@@ -17,6 +20,9 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: frontend
+        - podSelector:
+            matchLabels:
+              app: shopping-copilot
       ports:
         - { protocol: TCP, port: 3551 }
   egress:
@@ -27,6 +33,8 @@ spec:
           podSelector:
             matchLabels:
               k8s-app: kube-dns
+        - ipBlock:
+            cidr: 172.20.0.10/32
       ports:
         - { protocol: UDP, port: 53 }
         - { protocol: TCP, port: 53 }
@@ -34,18 +42,24 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: product-catalog
+        - ipBlock:
+            cidr: 172.20.145.185/32
       ports:
         - { protocol: TCP, port: 8080 }
     - to:
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: flagd
+        - ipBlock:
+            cidr: 172.20.213.30/32
       ports:
         - { protocol: TCP, port: 8013 }
     - to:
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: otel-gateway
+        - ipBlock:
+            cidr: 172.20.117.175/32
       ports:
         - { protocol: TCP, port: 4317 }
     - to:
@@ -54,8 +68,14 @@ spec:
         - ipBlock: { cidr: 10.0.32.0/20 }
       ports:
         - { protocol: TCP, port: 5432 }
-    # Standard NetworkPolicy has no FQDN peer. This is the narrowest viable
-    # Bedrock rule until a regional private egress proxy is introduced.
+    - to:
+        - ipBlock: { cidr: 10.0.0.0/20 }
+        - ipBlock: { cidr: 10.0.16.0/20 }
+        - ipBlock: { cidr: 10.0.32.0/20 }
+      ports:
+        - { protocol: TCP, port: 6379 }
+    # Standard NetworkPolicy has no FQDN peer. Keep promotion blocked until
+    # Bedrock and regional STS use an approved domain-aware egress control.
     - to:
         - ipBlock:
             cidr: 0.0.0.0/0

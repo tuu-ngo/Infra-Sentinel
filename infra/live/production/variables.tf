@@ -250,3 +250,29 @@ variable "audit_detection_trail_s3_retention_days" {
   type        = number
   default     = 30
 }
+
+# --- Cost guardrails (Cost Anomaly Detection + Budgets) --------------------------
+
+variable "enable_cost_guardrails" {
+  description = "Provision AWS Cost Anomaly Detection + a hard-ceiling Budget (global services, created via the us-east-1 provider)."
+  type        = bool
+  default     = false
+}
+
+variable "cost_guardrails_email_subscriptions" {
+  description = "Email recipients for cost alerts. When empty, falls back to audit_detection_email_subscriptions so cost alerts share the audit alert-plane inboxes."
+  type        = list(string)
+  default     = []
+}
+
+variable "cost_guardrails_monthly_budget_limit_usd" {
+  description = "Monthly hard-ceiling budget in USD. Defaults to the $300/week/TF ceiling projected over an average month."
+  type        = number
+  default     = 1300
+}
+
+variable "cost_guardrails_anomaly_impact_threshold_usd" {
+  description = "Absolute total-impact (USD) at or above which a detected cost anomaly triggers an alert."
+  type        = number
+  default     = 30
+}

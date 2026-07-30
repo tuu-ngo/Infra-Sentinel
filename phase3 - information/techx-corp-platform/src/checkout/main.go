@@ -774,8 +774,12 @@ func (cs *checkout) sendToPostProcessor(ctx context.Context, result *pb.OrderRes
 		return
 	}
 
+	// M9-03: SET message key = order_id
+	// Kafka partition theo key → cùng order_id luôn vào cùng partition (ordering).
+	// Consumer idempotency cũng dựa vào order_id làm dedup key.
 	msg := sarama.ProducerMessage{
 		Topic: kafka.Topic,
+		Key:   sarama.StringEncoder(result.OrderId), // M9-03: BẮT BUỘC set key
 		Value: sarama.ByteEncoder(message),
 	}
 

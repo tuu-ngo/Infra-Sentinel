@@ -80,13 +80,18 @@ func CreateKafkaProducer(brokers []string, logger *slog.Logger, secCfg SecurityC
 	// Idempotent + MaxOpenRequests=1 lets us retry safely without producing
 	// duplicate order events.
 	saramaConfig.Producer.RequiredAcks = sarama.WaitForAll
-	saramaConfig.Producer.Retry.Max = 3
+	// M9-03: Bump Retry.Max 3→10 để chịu được MSK rolling upgrade.
+	// Trong quá trình rolling, một broker có thể temporarily unavailable (~10-20s/broker).
+	// Retry.Max=10 với backoff mặc định ~100ms/retry ≈ ~1s tổng retry budget.
+	// Nằm trong end-to-end deadline 15s của PlaceOrder (checkout context timeout).
+	saramaConfig.Producer.Retry.Max = 10
 	saramaConfig.Producer.Idempotent = true
 	saramaConfig.Net.MaxOpenRequests = 1
 
-	// Bound how long a single produce call can block - fail fast instead of
-	// hanging until the caller's context is cancelled (PlaceOrder awaits this
-	// synchronously, so an unbounded wait here becomes checkout latency).
+	// M9-03: Producer.Timeout - thời gian tối đa một produce request chờ broker ack.
+	// End-to-end budget: client→CloudFront→Envoy→frontend→gRPC→DB ≈ 15s (PlaceOrder timeout).
+	// Breakdown: gRPC checkout ≤ 10s, Kafka produce ≤ 5s (giữ nguyên từ REL-09).
+	// 5s đủ cho MSK rolling (broker leader election ≈ 1-3s) và nằm trong 10s checkout budget.
 	saramaConfig.Producer.Timeout = 5 * time.Second
 
 	saramaConfig.Version = ProtocolVersion

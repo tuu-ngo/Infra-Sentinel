@@ -320,6 +320,32 @@ func main() {
 		}
 	}()
 
+	// REL-02: make the health check reflect the real dependency instead of a
+	// static SERVING. Postgres is this service's hard dependency, so poll it and
+	// flip the gRPC serving status. Once readiness/liveness probes are wired
+	// (REL-03), K8s will stop routing traffic to a pod whose DB is unreachable.
+	// (This is the reference pattern for the other services' Check() functions.)
+	go func() {
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+		for {
+			serving := healthpb.HealthCheckResponse_SERVING
+			if db == nil {
+				serving = healthpb.HealthCheckResponse_NOT_SERVING
+			} else if err := db.PingContext(ctx); err != nil {
+				serving = healthpb.HealthCheckResponse_NOT_SERVING
+				logger.Warn(fmt.Sprintf("health: database ping failed: %v", err))
+			}
+			// Empty service name = overall server health (what K8s probes check).
+			healthcheck.SetServingStatus("", serving)
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+			}
+		}
+	}()
+
 	go func() {
 		if err := srv.Serve(ln); err != nil {
 			logger.Error(fmt.Sprintf("Failed to serve gRPC server, err: %v", err))

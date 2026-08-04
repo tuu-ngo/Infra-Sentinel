@@ -3,6 +3,10 @@
 This runbook verifies that Grafana owns the OpenSearch datasource plugin in its
 custom ECR image and does not download it during Pod startup.
 
+Implementation timeline, failure analysis, final core evidence, and the
+remaining PR #426 gates are recorded in
+[`docs/pm-176-grafana-opensearch-implementation-report.md`](../pm-176-grafana-opensearch-implementation-report.md).
+
 The deploy source is `main` through ArgoCD. Do not use `helm upgrade`,
 `kubectl apply`, or an ad-hoc image patch as the final state.
 

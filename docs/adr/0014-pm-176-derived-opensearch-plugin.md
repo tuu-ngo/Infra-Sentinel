@@ -3,7 +3,7 @@
 **Ngày:** 27/07/2026
 
 **Người quyết định (ký):** VietSory — PM-176 implementation owner
-**Trạng thái:** ✅ Chấp nhận trên nhánh PR; chưa triển khai production
+**Trạng thái:** ✅ Chấp nhận và đã triển khai production qua PR #476/#478
 
 ## Bối cảnh
 
@@ -63,5 +63,21 @@ hoặc runtime thất bại, dừng rollout và tạo revert PR cho commit PM-17
 trên `main` sẽ tự đồng bộ về image trước đó. Không mở public egress để chữa
 cháy. Revisit quyết định khi upstream có signed release sạch, hoặc khi Grafana
 thay đổi cơ chế preinstall/signature.
+
+## Kết quả triển khai
+
+Image derived đã được build/push qua workflow `30240572310`, pin vào
+production bằng PR #478 và xác minh runtime ngày 27/07/2026:
+
+- ArgoCD `techx-corp` `Synced/Healthy`;
+- Pod Grafana 4/4 Ready, zero restart;
+- startup log đăng ký `grafana-opensearch-datasource`;
+- không có runtime install/download hoặc modified-signature failure;
+- datasource `webstore-logs` trả `HTTP 200`, `Index OK. Time field name OK.`;
+- image production:
+  `b44ca10-30240572310-grafana@sha256:198bff3b9b5f15962cf0942f38a0a90226f60277e7ef5212294987d160f55958`.
+
+Full PR #426 egress/destructive recreation gate vẫn là follow-up bắt buộc và
+không được suy diễn từ kết quả core rollout này.
 
 *Signed: VietSory, PM-176 implementation owner, 2026-07-27.*

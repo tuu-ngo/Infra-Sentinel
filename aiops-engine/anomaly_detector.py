@@ -219,6 +219,16 @@ class AnomalyDetector:
                 
         X = df_features[feature_cols].iloc[[-1]]  # Lấy dòng mới nhất
 
+        # IDLE GUARDRAIL: Triệt tiêu 100% cảnh báo giả khi dịch vụ rảnh rỗi (RPS <= 0.1 và Error = 0)
+        try:
+            rps_val = float(X["rps"].iloc[0]) if "rps" in X.columns else 0.0
+            err_val = float(X["error_rate"].iloc[0]) if "error_rate" in X.columns else 0.0
+            if rps_val <= 0.1 and err_val == 0.0:
+                logger.info(f"Idle Guardrail: Service {service} is idle (RPS={rps_val:.3f} <= 0.1, Error=0). Forcing pred=1 (Normal).")
+                return {"is_anomalous": False, "score": 0.1, "service": service, "details": "Idle Guardrail (Normal)"}
+        except Exception:
+            pass
+
         if service in self.models:
             model = self.models[service]
             pred = model.predict(X)[0] # -1: bất thường, 1: bình thường

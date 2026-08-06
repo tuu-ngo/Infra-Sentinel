@@ -39,6 +39,19 @@ cloudflare_allowed_emails = [
 # Đặt = true để state khớp hạ tầng thật; nếu để default false, plan sau sẽ đòi XOÁ 3 store.
 enable_managed_datastores = true
 
+# Mandate #20 — AWS Backup Compliance Vault Lock for the restore-proven RDS
+# recovery path. Compliance mode is selected by setting changeable_for_days = 3
+# (minimum AWS cooling-off period). The vault becomes immutable after the lock
+# date; until then, evidence must say "configured, cooling-off pending".
+#
+# AWS Backup in ap-southeast-1 supports RDS but not ElastiCache/MSK, so this flag
+# does not claim Valkey/MSK coverage.
+enable_mandate20_backup_vault_lock         = true
+mandate20_backup_retention_days            = 14
+mandate20_backup_vault_min_retention_days  = 7
+mandate20_backup_vault_max_retention_days  = 35
+mandate20_backup_vault_changeable_for_days = 3
+
 # Mandate 13: PostgreSQL/Valkey in-cluster da retire o production, nodegroup
 # stateful hien khong con pod techx-tf3 nao. Tat han nodegroup nay de bo node
 # on-demand rong, tang spot ratio ma khong ep giam headroom observability.

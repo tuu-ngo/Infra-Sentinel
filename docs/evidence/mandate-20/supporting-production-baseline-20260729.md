@@ -6,7 +6,7 @@ Nguyên tắc:
 
 - Chỉ thu thập inventory/evidence read-only.
 - Không apply tay, không sửa production trực tiếp.
-- Không claim Done chỉ từ baseline này; RDS drill result thật được ghi riêng trong [mandate-20-final-rds-pitr-evidence-20260729.md](mandate-20-final-rds-pitr-evidence-20260729.md).
+- Không claim Done chỉ từ baseline này; final evidence thật được ghi riêng trong [mandate-20-final-evidence-20260731.md](mandate-20-final-evidence-20260731.md).
 - RDS là store dùng để chứng minh PITR drill chính. Các tầng còn lại được ghi theo dạng coverage hoặc limitation để không claim quá tay.
 
 ## Metadata
@@ -19,14 +19,14 @@ Git baseline: 74b8d8e / origin/main 74b8d8e
 Evidence source: AWS CLI read-only output captured before drill
 Related local/operator files:
 - [docs/evidence/mandate-20/supporting-rds-pitr-preflight-20260729.md](supporting-rds-pitr-preflight-20260729.md)
-- [docs/evidence/mandate-20/mandate-20-final-rds-pitr-evidence-20260729.md](mandate-20-final-rds-pitr-evidence-20260729.md)
+- [docs/evidence/mandate-20/mandate-20-final-evidence-20260731.md](mandate-20-final-evidence-20260731.md)
 ```
 
 ## Scope
 
 File này chỉ trả lời câu: trước khi chạy restore drill, production đang có backup/recovery baseline gì cho các stateful store trong scope Mandate 20.
 
-File này không ghi nhận nội dung video và không thay thế drill result. Drill result thật đã được ghi riêng tại [docs/evidence/mandate-20/mandate-20-final-rds-pitr-evidence-20260729.md](mandate-20-final-rds-pitr-evidence-20260729.md).
+File này không ghi nhận nội dung video và không thay thế final evidence. Drill result thật đã được ghi riêng tại [docs/evidence/mandate-20/mandate-20-final-evidence-20260731.md](mandate-20-final-evidence-20260731.md).
 
 ## 1. RDS PostgreSQL
 
@@ -259,41 +259,41 @@ aws s3api get-object-lock-configuration `
 
 ## 7. Backup Deletion Authority
 
-Mục tiêu: khóa rõ phần CDO02 claim được và phần security/delete-authority posture. Vì account hiện có admin-wide principal, không claim tách quyền tuyệt đối nếu chưa có policy/SCP/permission boundary chứng minh.
+Mục tiêu: khóa rõ phần CDO02 claim được và phần security/delete-authority posture. Sau feedback mentor, CDO02 đã bổ sung IAM explicit deny guard cho normal operator / CI apply path. Không claim tách quyền tuyệt đối ở cấp root/SCP/Vault Lock vì account hiện không dùng AWS Organizations và không có AWS Backup vault trong current scope.
 
 | Principal / nhóm | Có được xóa backup không | Evidence / note |
 |---|---|---|
 | Read-only / reviewer | Không nên | policy target, không dùng để thao tác drill |
-| CDO02 operator | Không nên xóa backup production | chỉ được xóa DB drill tạm sau khi đã capture evidence |
-| CI plan role | Không nên có quyền xóa backup | cần policy evidence nếu claim enforcement |
-| CI apply role | Chỉ qua PR/approval nếu có quyền | cần policy evidence nếu claim enforcement |
+| CDO02 operator / `AIO2-Admin` | Direct delete API bị deny, nhưng chưa đủ tách quyền | IAM explicit deny `Mandate20BackupDeleteProtectionDeny`; follow-up review chỉ ra principal còn tự gỡ policy / tạo admin path khác |
+| CI plan role | Không có quyền xóa backup | ReadOnlyAccess; simulation trả `implicitDeny` |
+| CI apply role | Direct delete API bị deny | IAM explicit deny `Mandate20BackupDeleteProtectionDeny`; cần quản lý guard bằng control plane không tự gỡ được |
 | Break-glass / owner | Có điều kiện | accepted risk / MFA / approval / CloudTrail |
-| Admin-wide principal | Open risk | ghi accepted risk nếu chưa có SCP/permission boundary |
+| Admin-wide/root ngoài guard | Residual risk | không claim SCP/root-level immutability |
 
 Assessment:
 
 ```text
-Backup safety partially satisfied by managed encryption, deletion protection, state bucket versioning, and CloudTrail/account audit posture. Strong "operator cannot delete backup" separation is not proven by this baseline alone. Record as accepted risk or attach IAM/SCP evidence before claiming fully satisfied.
+Backup safety is only partially satisfied by IAM explicit deny evidence. Follow-up review shows the guard is self-removable by admin-capable paths and does not close all backup-destruction paths. This is weaker than SCP/Vault Lock/Object Lock and should not be claimed as YC#5 pass.
 ```
 
 ## 8. Overall Verdict
 
 ```text
 Requirement 1 - all stores covered:
-Partial but explicit. RDS is ready for PITR proof. Valkey has managed snapshots. MSK is replay/retention based. DynamoDB observed table is Terraform lock only. EBS legacy artifacts are not backed by observed snapshots/plans and should be excluded or accepted as limitation.
+Partial but explicit. RDS PITR drill has passed in the final RDS evidence. Valkey has managed snapshots and a restored drill RG, but the canary key was not recovered in the 2026-07-31 rescue attempt. MSK is replay/retention based, but replay proof is blocked until an approved Kafka client is available through GitOps/CI. DynamoDB observed table is Terraform lock only. EBS legacy artifacts are not backed by observed snapshots/plans and should be excluded or accepted as limitation.
 
 Requirement 2 - RPO/RTO and cadence:
-RDS target is set and measured in drill evidence: RPO <= 5 minutes passed for drill marker with 0 row data loss; RTO <= 45 minutes passed with 23.83 minutes. Valkey has snapshot retention 3 days / daily window, so do not claim 5-minute RPO for Valkey. MSK/DynamoDB/EBS targets are limitation/exclusion unless separate evidence is added.
+RDS target is set and measured in drill evidence: RPO <= 5 minutes passed for drill marker with 0 row data loss; RTO <= 45 minutes passed with 23.83 minutes. Valkey has snapshot retention 3 days / daily window and restore target evidence, but canary restore is not proven. MSK/DynamoDB/EBS targets are limitation/exclusion unless separate evidence is added.
 
 Requirement 3 - point-in-time restore proof:
 Passed for RDS. Drill restored to 2026-07-29T12:03:00Z and restored DB returned GOOD_BEFORE_CORRUPTION.
 
 Requirement 4 - tested restore drill:
-Done for RDS. Evidence record: [mandate-20-final-rds-pitr-evidence-20260729.md](mandate-20-final-rds-pitr-evidence-20260729.md). Video links are recorded in the final evidence file.
+Done for RDS. Evidence record: [mandate-20-final-evidence-20260731.md](mandate-20-final-evidence-20260731.md). Video links are recorded in the final evidence file.
 
 Requirement 5 - backup safety:
-Encryption and RDS deletion protection are present. Terraform state bucket versioning/encryption/public-block are present. Strong delete-authority separation is not proven; record accepted risk or attach IAM/SCP evidence.
+Encryption and RDS deletion protection are present. Terraform state bucket versioning/encryption/public-block are present. IAM explicit deny protects direct delete APIs for reviewed normal operator / CI apply paths, but it is self-removable and does not close `ModifyDBInstance`, `DeleteDBInstance`, `DeleteReplicationGroup`, or `ScheduleKeyDeletion`. No SCP/Vault Lock/root-level immutability is claimed.
 
 Go / No-Go:
-RDS PITR drill passed. Overall Mandate 20 Done still depends on accepted scope/limitations for non-RDS stores and delete-authority posture.
+RDS PITR drill passed. Overall Mandate 20 is not yet pass after mentor feedback; see [mandate-20-final-evidence-20260731.md](mandate-20-final-evidence-20260731.md) for the current top-level status.
 ```

@@ -191,6 +191,41 @@ variable "enable_managed_datastores" {
   default     = false
 }
 
+variable "enable_mandate20_backup_vault_lock" {
+  description = "Enable Mandate #20 AWS Backup vault, RDS backup plan, and Compliance Vault Lock."
+  type        = bool
+  default     = false
+}
+
+variable "mandate20_backup_retention_days" {
+  description = "Retention days for Mandate #20 AWS Backup RDS recovery points."
+  type        = number
+  default     = 14
+}
+
+variable "mandate20_backup_vault_min_retention_days" {
+  description = "Minimum retention days enforced by Mandate #20 Compliance Vault Lock."
+  type        = number
+  default     = 7
+}
+
+variable "mandate20_backup_vault_max_retention_days" {
+  description = "Maximum retention days enforced by Mandate #20 Compliance Vault Lock."
+  type        = number
+  default     = 35
+}
+
+variable "mandate20_backup_vault_changeable_for_days" {
+  description = "Compliance Vault Lock cooling-off period in days. AWS Backup requires at least 3 days."
+  type        = number
+  default     = 3
+
+  validation {
+    condition     = var.mandate20_backup_vault_changeable_for_days >= 3
+    error_message = "AWS Backup Compliance Vault Lock requires changeable_for_days >= 3."
+  }
+}
+
 variable "datastores_name_prefix" {
   description = "Prefix ngắn cho tên tài nguyên/secret datastore (vd techx-tf3)."
   type        = string

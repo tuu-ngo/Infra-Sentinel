@@ -11,6 +11,11 @@ output "rds_port" {
   value = try(aws_db_instance.postgres[0].port, null)
 }
 
+output "rds_instance_arn" {
+  description = "ARN RDS PostgreSQL production instance, used by Mandate #20 AWS Backup selection."
+  value       = try(aws_db_instance.postgres[0].arn, null)
+}
+
 output "rds_database_name" {
   value = try(aws_db_instance.postgres[0].db_name, null)
 }

@@ -1,0 +1,12 @@
+# Opt-in strict runtime filesystem baseline.
+#
+# Layer this file only after the target workload passes a canary/restart test:
+#   helm template techx-corp ../techx-corp-chart -f values.yaml \
+#     -f values-security-baseline.yaml -f values-prod.yaml
+#
+# It is intentionally NOT referenced by the production Argo CD Application yet.
+# A read-only root filesystem can regress images that write generated config,
+# caches, sockets, or state outside an explicitly mounted writable volume.
+default:
+  securityContext:
+    readOnlyRootFilesystem: true

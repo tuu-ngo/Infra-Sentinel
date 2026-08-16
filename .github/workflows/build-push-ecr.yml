@@ -56,7 +56,7 @@ jobs:
       source_sha: ${{ steps.scope.outputs.source_sha }}
       source_short_sha: ${{ steps.scope.outputs.source_short_sha }}
       base_tag: ${{ steps.vars.outputs.tag }}
-      platforms: ${{ steps.vars.outputs.platforms }}
+      platforms: ${{ steps.scope.outputs.platforms_override || steps.vars.outputs.platforms }}
     steps:
       - name: Checkout source
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -226,12 +226,34 @@ jobs:
             read -r -a SERVICE_ARRAY <<< "$SERVICES"
             MATRIX="$(printf '%s\n' "${SERVICE_ARRAY[@]}" | jq -R . | jq -sc .)"
           fi
+          # TẠM THỜI: khi phạm vi build ĐÚNG BẰNG aiops-engine, ép linux/amd64.
+          #
+          # Vì sao: base Alpine phải compile scipy/scikit-learn từ nguồn, và bản arm64
+          # chạy qua QEMU emulation trên runner x86 -> bước build+push mất ~49 phút
+          # trong tổng 57 (bản amd64 chỉ 6 phút).
+          #
+          # Vì sao AN TOÀN: node arm64 mang taint techx.io/arch=arm64:NoSchedule và
+          # techx.io/workload=elastic:NoSchedule, mà aiops-engine không khai toleration
+          # nào -> scheduler không thể đặt nó lên đó. Ảnh amd64-only là đủ.
+          #
+          # Vì sao chỉ áp khi scope ĐÚNG BẰNG aiops-engine: product-catalog đang chạy
+          # thật trên node arm64 (có toleration cho cả hai taint). Ép amd64 toàn cục sẽ
+          # làm nó chết exec format error ở lần build kế tiếp.
+          #
+          # GỠ khối này khi AIO02 chốt code và muốn aiops chạy được trên node arm.
+          PLATFORMS_OVERRIDE=""
+          if [ "$(printf '%s' "$SERVICES" | tr -s ' ' | sed 's/^ *//;s/ *$//')" = "aiops-engine" ]; then
+            PLATFORMS_OVERRIDE="linux/amd64"
+            echo "Scope is aiops-engine only -> forcing platforms=linux/amd64"
+          fi
+
           {
             echo "source_sha=$SOURCE_SHA"
             echo "source_short_sha=$SOURCE_SHORT_SHA"
             echo "mode=$MODE"
             echo "services=$SERVICES"
             echo "matrix=$MATRIX"
+            echo "platforms_override=$PLATFORMS_OVERRIDE"
           } >> "$GITHUB_OUTPUT"
 
   build-scan:
@@ -269,7 +291,10 @@ jobs:
         id: vars
         env:
           INPUT_IMAGE_TAG: ${{ inputs.image_tag }}
-          INPUT_PLATFORMS: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
+          # Lấy từ prepare thay vì tính lại: prepare đã chuẩn hoá, đã validate, và là nơi
+          # áp override amd64-only cho aiops-engine. Trước đây hai job tính độc lập cùng một
+          # biểu thức — trùng lặp, và lệch nhau là bước bump fail ở --expected-platforms.
+          INPUT_PLATFORMS: ${{ needs.prepare.outputs.platforms }}
         run: |
           set -euo pipefail
 

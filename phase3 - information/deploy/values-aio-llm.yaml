@@ -20,11 +20,31 @@ components:
 
       # Model tóm tắt review chính.
       - name: LLM_MODEL
-        value: amazon.nova-lite-v1:0
+        value: apac.amazon.nova-lite-v1:0
 
-      # Judge model sẽ mặc định về amazon.nova-micro-v1:0 trong code nếu không override.
       - name: AWS_REGION
-        value: us-east-1
+        value: ap-southeast-1
+
+      # Keep candidate and judge on the same audited APAC private path. Explicit
+      # judge settings prevent the code default from using a direct us-east-1 ID.
+      - name: JUDGE_REGION
+        value: ap-southeast-1
+      - name: JUDGE_MODEL
+        value: apac.amazon.nova-micro-v1:0
+
+      # ESO creates this Secret only after Terraform has created the VPCEs and
+      # SSM parameters. maxUnavailable=0 keeps the old ReplicaSet serving until
+      # the complete private path is ready.
+      - name: AWS_ENDPOINT_URL_STS
+        valueFrom:
+          secretKeyRef:
+            name: product-reviews-ai-endpoints
+            key: sts_url
+      - name: AWS_ENDPOINT_URL_BEDROCK_RUNTIME
+        valueFrom:
+          secretKeyRef:
+            name: product-reviews-ai-endpoints
+            key: bedrock_runtime_url
 
       # Boto3 uses this proxy for both regional STS web-identity exchange and
       # Bedrock Runtime. Internal service and datastore traffic stays direct.

@@ -43,6 +43,29 @@ must use a separate PR and a low-traffic change window.
   path is `checkout -> shipping -> quote`, so no unnecessary direct rule is
   opened.
 
+## Product Reviews private-path rollout
+
+This runtime PR depends on the Product Reviews Terraform endpoint PR being
+merged and successfully applied first. It does not promote
+`32-product-reviews.yaml`.
+
+1. Confirm the `product-reviews-ai-private-path` Terraform apply completed and
+   its endpoint, ENI IP, SSM, and IAM checks passed.
+2. Merge this runtime PR during a low-traffic window. The production Deployment
+   uses `RollingUpdate`, `maxUnavailable: 0`, so the old ReplicaSet remains
+   available while new pods wait for the endpoint Secret.
+3. Wait for `product-reviews-ai-endpoints` to become Ready, then verify the
+   Product Reviews rollout, both private endpoint connections, Argo CD
+   `Synced/Healthy`, storefront HTTP 200, and browse/cart/checkout.
+4. Keep the legacy `us-east-1` model permission for rollback until the APAC
+   runtime has completed its agreed soak window. Remove it in a cleanup PR.
+5. Promote `32-product-reviews.yaml` only in a later policy PR after rechecking
+   all six endpoint ENI addresses and passing the allowed/denied matrix.
+
+If the secret handoff or runtime rollout fails, revert this Git commit so Argo
+restores the previous workload specification. Do not patch the Deployment or
+apply the NetworkPolicy manually.
+
 ## Active-policy replacement gate
 
 Kubernetes NetworkPolicy rules are additive for every policy selecting a pod.

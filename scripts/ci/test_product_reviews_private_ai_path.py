@@ -1,6 +1,9 @@
 import re
 from pathlib import Path
 
+import yaml
+
+
 ENDPOINTS = Path("infra/live/production/ai-runtime-vpc-endpoints.tf").read_text(
     encoding="utf-8"
 )
@@ -8,6 +11,23 @@ OUTPUTS = Path("infra/live/production/outputs.tf").read_text(encoding="utf-8")
 IRSA = Path(
     "infra/modules/eks-platform/product-reviews-bedrock.tf"
 ).read_text(encoding="utf-8")
+RUNTIME_VALUES = yaml.safe_load(
+    Path("phase3 - information/deploy/values-aio-llm.yaml").read_text(
+        encoding="utf-8"
+    )
+)
+PRODUCTION_VALUES = yaml.safe_load(
+    Path("phase3 - information/deploy/values-prod.yaml").read_text(
+        encoding="utf-8"
+    )
+)
+EXTERNAL_SECRETS = list(
+    yaml.safe_load_all(
+        Path("gitops/secrets/product-reviews-ai-endpoints.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+)
 
 EXPECTED_PROFILE_IDS = {
     "apac.amazon.nova-lite-v1:0",
@@ -217,6 +237,54 @@ def test_endpoint_urls_are_published_through_least_privilege_ssm_handoff():
     assert 'variable = "kms:ViaService"' in policy
     assert 'variable = "kms:EncryptionContext:PARAMETER_ARN"' in policy
     assert 'resources = ["*"]' not in policy
+
+
+def test_external_secret_reads_only_the_two_endpoint_parameters():
+    store = next(document for document in EXTERNAL_SECRETS if document["kind"] == "ClusterSecretStore")
+    external_secret = next(
+        document for document in EXTERNAL_SECRETS if document["kind"] == "ExternalSecret"
+    )
+
+    assert store["metadata"]["name"] == "aws-parameter-store"
+    assert store["spec"]["provider"]["aws"]["service"] == "ParameterStore"
+    assert external_secret["spec"]["target"]["name"] == "product-reviews-ai-endpoints"
+    assert {
+        item["remoteRef"]["key"] for item in external_secret["spec"]["data"]
+    } == {
+        "/techx-corp-tf3/product-reviews/ai-endpoints/sts-url",
+        "/techx-corp-tf3/product-reviews/ai-endpoints/bedrock-runtime-url",
+    }
+
+
+def test_runtime_uses_apac_profiles_and_private_service_endpoints():
+    overrides = {
+        item["name"]: item
+        for item in RUNTIME_VALUES["components"]["product-reviews"]["envOverrides"]
+    }
+
+    assert overrides["AWS_REGION"]["value"] == "ap-southeast-1"
+    assert overrides["LLM_MODEL"]["value"] == "apac.amazon.nova-lite-v1:0"
+    assert overrides["JUDGE_REGION"]["value"] == "ap-southeast-1"
+    assert overrides["JUDGE_MODEL"]["value"] == "apac.amazon.nova-micro-v1:0"
+    assert overrides["AWS_ENDPOINT_URL_STS"]["valueFrom"]["secretKeyRef"] == {
+        "name": "product-reviews-ai-endpoints",
+        "key": "sts_url",
+    }
+    assert overrides["AWS_ENDPOINT_URL_BEDROCK_RUNTIME"]["valueFrom"][
+        "secretKeyRef"
+    ] == {
+        "name": "product-reviews-ai-endpoints",
+        "key": "bedrock_runtime_url",
+    }
+
+
+def test_rollout_keeps_old_product_reviews_pods_available_during_handoff():
+    product_reviews = PRODUCTION_VALUES["components"]["product-reviews"]
+    rolling_update = product_reviews["strategy"]["rollingUpdate"]
+
+    assert product_reviews["strategy"]["type"] == "RollingUpdate"
+    assert rolling_update["maxUnavailable"] == 0
+    assert rolling_update["maxSurge"] >= 1
 
 
 def test_endpoint_outputs_support_runtime_and_network_policy_evidence():

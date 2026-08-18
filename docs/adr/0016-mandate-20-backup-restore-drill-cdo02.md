@@ -6,6 +6,8 @@
 **Trạng thái:** RDS PITR drill executed - RDS restore correctness passed; overall Mandate #20 còn phụ thuộc accepted scope/limitation cho non-RDS stores và delete-authority posture  
 **Tham chiếu:** [docs/docx_cdo02/mandate-20-rds-pitr-restore-solution.md](../docx_cdo02/mandate-20-rds-pitr-restore-solution.md)
 
+**RPO/RTO contract + drill selection:** [docs/docx_cdo02/mandate-20-rpo-rto-contract-and-drill-selection.md](../docx_cdo02/mandate-20-rpo-rto-contract-and-drill-selection.md)
+
 ## Bối cảnh
 
 Mandate #20 yêu cầu chứng minh hệ thống khôi phục được dữ liệu sau mất/hỏng dữ liệu, bằng một restore drill thật, có RPO/RTO đo được. Yêu cầu không được tính là đạt chỉ vì đã bật backup.
@@ -17,6 +19,8 @@ TF3 hiện đã migrate datastore chính lên managed service theo Mandate #8:
 - MSK Kafka `techx-tf3-kafka`
 
 RDS hiện là ứng viên tốt nhất để làm proof chính vì có Point-in-Time Restore native, có thể restore về mốc trước lỗi sang DB instance tách biệt, rồi kiểm chứng bằng SQL mà không đổi traffic production.
+
+Valkey không được chọn làm main proof vì current recovery path là daily snapshot, không phải timestamp-addressable PITR, và cart/session là soft state thay vì durable business ledger. MSK không được chọn vì recovery path là retention/offset replay/reconciliation; replay không phải point-in-time restore và cần guard chống duplicate side effect. Decision matrix và contract định lượng nằm trong [RPO/RTO contract + drill selection](../docx_cdo02/mandate-20-rpo-rto-contract-and-drill-selection.md).
 
 ## Quyết định
 
@@ -51,9 +55,10 @@ T_restore: 2026-07-29T12:03:00Z
 T_corrupt_commit_utc: 2026-07-29T12:15:18.439171Z
 Restored DB result: GOOD_BEFORE_CORRUPTION
 RPO evidence: T_restore cách T_good_commit_utc 41.248131 giây; probe data loss 0 row
-RTO measured: 23.83 phút
+Infrastructure available elapsed: 23.83 phút
 RTO target: <= 45 phút
 RDS PITR restore correctness: PASS
+End-to-end RTO verdict: pending successful-query timestamp addendum
 ```
 
 ## Ranh giới an toàn
@@ -81,7 +86,7 @@ CDO02 claim các phần sau:
 - RPO/RTO vận hành cho RDS restore drill.
 - Runbook restore an toàn, không ảnh hưởng production traffic.
 - Evidence SQL: GOOD -> CORRUPTED -> RESTORED GOOD.
-- RTO measured.
+- End-to-end RTO measured tới successful restored-data query.
 - Cleanup DB drill; production marker cleanup nếu có thì chỉ xóa đúng marker id của lần drill, hoặc giữ lại làm audit trail.
 - Coverage matrix cho store khác: ElastiCache, MSK, DynamoDB lock, EBS legacy, GitOps/IaC state.
 
@@ -105,12 +110,12 @@ ADR này ghi cam kết vận hành theo từng tầng dữ liệu để khớp y
 
 | Tầng dữ liệu / state | Vai trò trong hệ thống | RPO target | RTO target | Backup / recovery strategy | Cadence / retention | CDO02 claim | Security / delete-permission verdict |
 |---|---|---|---|---|---|---|---|
-| RDS PostgreSQL `techx-tf3-postgres` | Store chính cho catalog/reviews/accounting/order data | `<= 5 phút` theo PITR window | `<= 45 phút` cho restore drill; measured `23.83 phút` | RDS automated backup + PITR; restore về `T_restore` sang DB drill tách biệt | Automated backup retention 7 ngày; manual snapshot phụ nếu có | **Claim chính của CDO02 đã pass RDS drill**; evidence [mandate-20-final-rds-pitr-evidence-20260729.md](../evidence/mandate-20/mandate-20-final-rds-pitr-evidence-20260729.md) | Cần ghi ai được xóa snapshot/automated backup và KMS posture; nếu admin-wide còn rộng thì ghi accepted risk |
-| ElastiCache Valkey `techx-tf3-valkey` | Cart/session cache trên luồng browse -> cart -> checkout | Target theo snapshot window; nếu không claim restore cart, ghi accepted cart-state strategy | Target theo restore snapshot hoặc accepted recovery strategy | ElastiCache snapshot/restore hoặc accepted limitation: cart state là soft-state, không dùng làm PITR proof chính | Snapshot retention quan sát: 3 ngày | CDO02 ghi coverage verdict, không thay RDS PITR drill | Nếu claim backup, cần ghi encryption/snapshot delete permission hoặc accepted risk |
-| MSK Kafka `techx-tf3-kafka` | Order event stream cho checkout -> accounting/fraud | Target: `0 acknowledged order lost` trong retention window nếu producer/consumer replay đúng | Target theo consumer replay/reconciliation, cần evidence sau drill/record riêng | MSK retention/replay; không gọi là PITR backup | Topic retention cần được capture trong evidence; prior docs ghi 168h | CDO02 ghi replay/reconciliation strategy, không dùng làm PITR proof chính | Cần ghi KMS/IAM/delete topic/config destructive control nếu claim |
-| DynamoDB `techx-tf3-terraform-lock` | Terraform lock table, không phải dữ liệu khách hàng | Excluded nếu chỉ là lock tái tạo được | Rebuild/recreate lock table nếu mất | Exclusion with reason, không dùng làm data restore proof | Không yêu cầu retention khách hàng nếu exclude | CDO02 claim exclude nếu team xác nhận chỉ là lock | Nếu team muốn protect, cần xác nhận PITR/IAM |
-| EBS/PVC legacy volumes | Legacy artifacts từ pre-managed datastore / Mandate #8/#18 | Không claim RPO/RTO cho production data | Không claim restore path trong M20 drill | Không dùng làm backup proof chính; pending Mandate #8 acceptance / Mandate #18 cleanup | Không dùng làm retention proof nếu legacy/available | CDO02 ghi pending/accepted limitation để không gạt M8/M18 | Nếu giữ làm artifact, cần encryption/delete policy verdict |
-| GitOps/IaC state | Manifest, config, Terraform state/source of truth | Git RPO: last pushed commit; Terraform state RPO phụ thuộc backend versioning | Target restore/reconcile phải được đo trong DR/state runbook nếu claim | Git history + Terraform state backend/versioning/Object Lock nếu có | Retention/versioning phải capture từ backend thực tế | CDO02 claim GitOps source-of-truth process; state backend cần evidence riêng | Cần xác nhận state bucket/Object Lock/IAM delete protection nếu claim |
+| RDS PostgreSQL `techx-tf3-postgres` | Store chính cho catalog/reviews/accounting/order data | `<= 5 phút` theo PITR window | `<= 45 phút` từ restore request tới successful restored-data query; infrastructure available elapsed `23.83 phút` | RDS automated backup + PITR; restore về `T_restore` sang DB drill tách biệt | Automated backup retention 7 ngày; manual snapshot phụ nếu có | Restore correctness và marker RPO pass; end-to-end RTO cần timestamp query thành công | Cần ghi ai được xóa snapshot/automated backup và KMS posture; nếu admin-wide còn rộng thì ghi accepted risk |
+| ElastiCache Valkey `techx-tf3-valkey` | Cart/session cache trên luồng browse -> cart -> checkout | `<= 24 giờ` theo tuổi snapshot | `<= 60 phút` tới lúc sample keys/value/TTL trên restored endpoint pass | Restore snapshot sang replication group tách biệt; cart là soft-state, không dùng làm PITR proof chính | Daily snapshot window `14:00-15:00 UTC`; retention `3 ngày` | Contract defined; secondary restore drill pending | Cần ghi encryption/snapshot delete permission hoặc accepted risk |
+| MSK Kafka `techx-tf3-kafka` | Order event stream cho checkout -> accounting/fraud | `0 phút acknowledged-event loss` trong retention window | `<= 60 phút` cho controlled replay tới lúc scoped lag `0` và reconciliation pass | MSK retention/reset offset/replay; không gọi là PITR backup | Continuous replication; `log.retention.hours=168` | Contract defined; bounded replay/reconciliation drill pending | Cần ghi KMS/IAM/delete topic/config destructive control nếu claim |
+| DynamoDB `techx-tf3-terraform-lock` | Terraform lock table, không phải dữ liệu khách hàng | `N/A` cho business data nếu exclusion được phê duyệt | `<= 15 phút` để recreate và prove acquire/release lock | Exclusion with reason, không dùng làm data restore proof | Không yêu cầu customer-data retention khi exclude | Contract defined; mentor approval/rebuild record pending | Nếu team muốn protect, cần xác nhận PITR/IAM |
+| EBS/PVC stateful data | Không có trong current revenue-path inventory | `NOT_PRESENT`; phải định nghĩa trước khi tái xuất hiện | `NOT_APPLICABLE` khi inventory vẫn trống | Stateful EBS mới bị chặn cho tới khi có snapshot/RPO/RTO contract | Backup cadence/retention là admission gate cho volume mới | Conditional exclusion; re-inventory required | Nếu xuất hiện volume, cần encryption/delete policy verdict |
+| GitOps/IaC/config/secret references | Manifest, config, Terraform state/source of truth | `<= 15 phút` từ accepted change tới durable version | `<= 60 phút` tới lúc state/config validation và reconciliation pass | Git history + S3 state version + Argo reconciliation + secret version/reference recovery | Mỗi Git commit/state write/secret version; retention/delete control cần evidence | Contract defined; recovery drill pending | Cần xác nhận state bucket/Object Lock/IAM delete protection nếu claim |
 
 ## Backup deletion authority
 
@@ -131,7 +136,7 @@ Kết luận: trước khi có enforcement evidence hoặc accepted-risk note, C
 
 | Store / state | Quyết định CDO02 | Điều kiện evidence |
 |---|---|---|
-| RDS PostgreSQL | Drill chính bằng PITR | Restored DB trả marker GOOD, RTO measured |
+| RDS PostgreSQL | Drill chính bằng PITR | Restored DB trả marker GOOD, end-to-end RTO measured tới successful query |
 | ElastiCache Valkey | Coverage phụ | Snapshot/restore evidence hoặc accepted cart-state strategy |
 | MSK Kafka | Coverage riêng bằng retention/replay | Producer/consumer replay hoặc order reconciliation; không gọi là PITR |
 | DynamoDB lock | Exclude nếu chỉ là Terraform lock | Ghi rõ tái tạo được, không phải dữ liệu khách hàng |
@@ -167,7 +172,8 @@ DB drill identifier: techx-tf3-postgres-drill-20260729-181943
 Drill marker id: m20-rds-pitr-20260729-181943
 RPO evidence: <= 5 phút target met for drill marker; 0 row data loss
 Restore start/end: 2026-07-29T12:40:03Z / 2026-07-29T13:03:53Z
-RTO measured: 23.83 phút
+Infrastructure available elapsed: 23.83 phút
+End-to-end RTO: pending successful-query timestamp addendum
 Production corrupt query: CORRUPTED_AFTER_GOOD_TIME
 Restored DB GOOD query: GOOD_BEFORE_CORRUPTION
 Witness mode: recorded video, Drive links recorded in final evidence
@@ -179,12 +185,13 @@ Tại thời điểm cập nhật evidence:
 
 - Thiết kế RDS PITR drill: **Accepted**
 - Hạ tầng nền để chạy drill: **Sẵn sàng**
-- Restore drill evidence: **Có - RDS restore correctness PASS, RTO 23.83 phút**
+- Restore drill evidence: **Có - RDS restore correctness PASS; infrastructure available elapsed 23.83 phút**
 - RPO evidence: **Có - T_restore nằm sau GOOD 41.248131 giây, restored marker GOOD, 0 row data loss**
 - Data-tier commitment matrix: **Đã ghi target/verdict; non-RDS store giữ ở coverage/limitation**
+- RTO end-to-end: **Cần timestamp của successful query trên drill DB để tính đúng contract**
 - Security/delete-permission verdict: **Cần enforcement evidence hoặc accepted risk**
 
-Vì vậy CDO02 có thể claim: **RDS PITR restore drill passed**. Mandate #20 overall chỉ nên claim Done khi scope/limitation cho Valkey/MSK/DynamoDB/EBS/GitOps và delete-authority posture được mentor/PM chấp nhận.
+Vì vậy CDO02 có thể claim: **RDS PITR restore correctness passed**. Không claim RTO end-to-end chỉ từ mốc DB `available`; Mandate #20 overall chỉ nên claim Done khi có timestamp query thành công, scope/limitation cho Valkey/MSK/DynamoDB/EBS/GitOps và delete-authority posture được mentor/PM chấp nhận.
 
 ## Chữ ký
 

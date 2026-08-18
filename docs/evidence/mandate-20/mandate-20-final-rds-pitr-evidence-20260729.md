@@ -9,13 +9,26 @@ Result: PASS for RDS PITR restore correctness
 RPO target: <= 5 minutes
 RPO evidence: T_restore is 41.248131 seconds after GOOD commit and restored marker was recovered
 Probe data loss: 0 row
-RTO measured: 23.83 minutes
+Infrastructure available elapsed: 23.83 minutes
 RTO target: <= 45 minutes
+End-to-end RTO verdict: pending successful-query timestamp addendum
 Traffic impact: none observed / no app repoint performed
 Production restore-overwrite: not performed
 Drill DB: separate RDS instance, private, same DB subnet group
 Video links: Drive folder and per-video links recorded in Video Evidence Index
 ```
+
+Contract clarification added after evidence review:
+
+```text
+The 23.83-minute value ends when the RDS drill instance became available.
+The GOOD marker was subsequently verified on the correct drill endpoint in video 4,
+but that successful query does not have a recorded UTC timestamp in this evidence set.
+Under contract v1, RTO ends at the successful restored-data query, so 23.83 minutes
+must not be presented as the final end-to-end RTO until T_verify_good is supplied.
+```
+
+Normative measurement rules: [RPO/RTO contract and drill selection](../../docx_cdo02/mandate-20-rpo-rto-contract-and-drill-selection.md).
 
 ## Scope
 
@@ -164,10 +177,12 @@ RTO:
 
 ```text
 RestoreStart=2026-07-29T12:40:03Z
-RestoreEnd=2026-07-29T13:03:53Z
-RTO measured minutes=23.83
+InfrastructureAvailableAt=2026-07-29T13:03:53Z
+Infrastructure available elapsed minutes=23.83
+T_verify_good=not recorded
+End-to-end RTO verdict=PENDING_TIMESTAMP_ADDENDUM
 Target: <= 45 minutes
-Verdict: PASS
+Restore correctness verdict: PASS
 ```
 
 ## Restored DB Verification
@@ -258,7 +273,8 @@ DROP SCHEMA dr_drill CASCADE;
 ```text
 RDS PITR restore correctness: PASS
 RPO target <= 5 minutes: PASS for drill marker, restored with 0 row data loss
-RTO target <= 45 minutes: PASS, measured 23.83 minutes
+Infrastructure available elapsed: 23.83 minutes
+RTO target <= 45 minutes: PENDING successful-query timestamp addendum
 Production traffic impact: none expected / no repoint performed
 Evidence links: Drive folder and per-video links recorded above
 Remaining Mandate 20 non-RDS items: see baseline/gap-analysis docs

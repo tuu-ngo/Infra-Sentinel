@@ -11,6 +11,7 @@ Evidence index: [docs/evidence/mandate-20/README.md](../evidence/mandate-20/READ
 Video script: incident_report/mandate20-video-script-rds-pitr-drill-2026-07-29.md (operator-local, not pushed as PR evidence)
 RDS preflight evidence: [docs/evidence/mandate-20/supporting-rds-pitr-preflight-20260729.md](../evidence/mandate-20/supporting-rds-pitr-preflight-20260729.md)
 RDS drill evidence: [docs/evidence/mandate-20/mandate-20-final-rds-pitr-evidence-20260729.md](../evidence/mandate-20/mandate-20-final-rds-pitr-evidence-20260729.md)
+RPO/RTO contract and drill selection: [docs/docx_cdo02/mandate-20-rpo-rto-contract-and-drill-selection.md](mandate-20-rpo-rto-contract-and-drill-selection.md)
 Status: RDS PITR restore correctness passed; Drive video links recorded in final evidence; overall Mandate #20 depends on accepted non-RDS scope/limitations and delete-authority posture
 ```
 
@@ -32,6 +33,8 @@ Lý do:
 - Có thể restore về mốc `T_restore` sang DB instance tạm/tách biệt.
 - Có thể kiểm chứng bằng SQL rõ ràng.
 - Không cần đổi code, secret, Helm values, ArgoCD sync, hoặc traffic production.
+
+Không chọn Valkey làm main proof vì production recovery path là daily snapshot và cart/session là soft state, không phải timestamp-addressable durable ledger. Không chọn MSK vì reset offset/replay/reconciliation không phải PITR và có duplicate-side-effect risk nếu consumer không được cô lập. Bảng so sánh và contract định lượng nằm tại [RPO/RTO contract and drill selection](mandate-20-rpo-rto-contract-and-drill-selection.md).
 
 Target trong ADR 0016:
 
@@ -80,10 +83,11 @@ RestoreEnd: 2026-07-29T13:03:53Z
 RPO target: <= 5 phút
 RPO evidence: T_restore cách T_good_commit_utc 41.248131 giây và restored DB trả lại marker GOOD
 Probe data loss: 0 row
-RTO measured: 23.83 phút
+Infrastructure available elapsed: 23.83 phút
 RTO target: <= 45 phút
 Restored DB marker: GOOD_BEFORE_CORRUPTION
 RDS PITR restore correctness: PASS
+End-to-end RTO verdict: pending successful-query timestamp addendum
 Video evidence: 4 videos captured, Drive links recorded in final evidence
 ```
 
@@ -143,11 +147,11 @@ Mandate #20 yêu cầu không sót store/stateful state. CDO02 claim theo mức 
 | Store/state | Vai trò | Mandate #20 stance |
 |---|---|---|
 | RDS PostgreSQL `techx-tf3-postgres` | Store chính cho catalog/reviews/accounting/order data | Proof chính bằng PITR restore drill |
-| ElastiCache Valkey `techx-tf3-valkey` | Cart/session cache | Coverage phụ: snapshot/accepted cart-state strategy, không thay RDS PITR proof |
-| MSK Kafka `techx-tf3-kafka` | Event stream | Coverage phụ bằng retention/replay/reconciliation, không gọi là PITR |
-| DynamoDB `techx-tf3-terraform-lock` | Terraform lock | Exclude nếu chỉ là lock tái tạo được |
-| EBS/PVC legacy | Artifact trước managed datastore | Không dùng làm M20 proof chính, tránh gạt Mandate #8/#18 |
-| GitOps/IaC state | Source of truth cấu hình/hạ tầng | Coverage bằng Git commit/state backend/versioning nếu team claim |
+| ElastiCache Valkey `techx-tf3-valkey` | Cart/session cache | Snapshot recovery contract: RPO `<= 24h`, RTO `<= 60m`; secondary drill pending |
+| MSK Kafka `techx-tf3-kafka` | Event stream | Replay/reconciliation contract: no acknowledged-event loss in 168h window, RTO `<= 60m`; không gọi là PITR |
+| DynamoDB `techx-tf3-terraform-lock` | Terraform lock | Business-data RPO `N/A`; rebuild RTO `<= 15m`, pending approved exclusion |
+| EBS/PVC stateful data | Không có trong current revenue-path inventory | `NOT_PRESENT`; mở lại contract gate nếu stateful volume tái xuất hiện |
+| GitOps/IaC/config/secret references | Source of truth cấu hình/hạ tầng | RPO `<= 15m`, RTO `<= 60m`; recovery evidence pending |
 
 ## Backup safety / delete authority
 
@@ -183,7 +187,7 @@ Trong drill:
 - Restore command/output.
 - DB drill identifier/endpoint.
 - Restore start/end.
-- RTO measured.
+- End-to-end RTO measured tới successful restored-data query.
 
 Sau restore:
 
@@ -208,7 +212,7 @@ Trạng thái hiện tại:
 ```text
 RDS PITR restore drill: PASS
 RPO <= 5 phút: PASS cho marker drill, 0 row data loss
-RTO <= 45 phút: PASS, measured 23.83 phút
+RTO <= 45 phút: pending end-to-end timestamp; 23.83 phút is infrastructure available elapsed
 Production traffic/SLO impact: none expected / no repoint performed
 Drive links: recorded in [docs/evidence/mandate-20/mandate-20-final-rds-pitr-evidence-20260729.md](../evidence/mandate-20/mandate-20-final-rds-pitr-evidence-20260729.md)
 Mandate #20 overall: cần mentor/PM chấp nhận scope/limitation cho non-RDS stores và delete-authority posture trước khi claim Done toàn bộ

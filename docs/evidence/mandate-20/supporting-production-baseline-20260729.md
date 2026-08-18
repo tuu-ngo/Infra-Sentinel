@@ -283,7 +283,7 @@ Requirement 1 - all stores covered:
 Partial but explicit. RDS is ready for PITR proof. Valkey has managed snapshots. MSK is replay/retention based. DynamoDB observed table is Terraform lock only. EBS legacy artifacts are not backed by observed snapshots/plans and should be excluded or accepted as limitation.
 
 Requirement 2 - RPO/RTO and cadence:
-RDS target is set and measured in drill evidence: RPO <= 5 minutes passed for drill marker with 0 row data loss; RTO <= 45 minutes passed with 23.83 minutes. Valkey has snapshot retention 3 days / daily window, so do not claim 5-minute RPO for Valkey. MSK/DynamoDB/EBS targets are limitation/exclusion unless separate evidence is added.
+RDS target is defined in drill evidence: RPO <= 5 minutes passed for the drill marker with 0 row data loss. The 23.83-minute value is infrastructure available elapsed; end-to-end RTO <= 45 minutes remains pending a successful-query timestamp addendum. Valkey contract is RPO <= 24 hours / RTO <= 60 minutes with 3-day daily snapshots. MSK uses the separate retention/replay contract; DynamoDB/EBS remain conditional exclusions unless separate evidence is added.
 
 Requirement 3 - point-in-time restore proof:
 Passed for RDS. Drill restored to 2026-07-29T12:03:00Z and restored DB returned GOOD_BEFORE_CORRUPTION.

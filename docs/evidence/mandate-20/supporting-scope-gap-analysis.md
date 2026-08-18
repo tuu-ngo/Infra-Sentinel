@@ -36,7 +36,7 @@ Kết luận ngắn: RDS drill đã pass; Mandate 20 overall còn phụ thuộc 
 | 1. Không sót store nào trên luồng ra tiền | ADR đã có data-tier commitments và coverage matrix | `Partial` |
 | 2. RPO/RTO rõ ràng, cadence tương xứng | RDS có target và measured result; store khác ghi limitation/strategy | `RDS passed / Non-RDS partial` |
 | 3. Point-in-time restore chứng minh được | RDS PITR drill đã restore về `T_restore` và trả marker GOOD | `Passed for RDS` |
-| 4. Tested restore drill | Evidence record [mandate-20-final-rds-pitr-evidence-20260729.md](mandate-20-final-rds-pitr-evidence-20260729.md), RTO 23.83 phút | `Passed for RDS` |
+| 4. Tested restore drill | Evidence record [mandate-20-final-rds-pitr-evidence-20260729.md](mandate-20-final-rds-pitr-evidence-20260729.md): restore correctness passed; infrastructure available elapsed 23.83 phút; end-to-end RTO timestamp pending | `Correctness passed / RTO addendum pending` |
 | 5. Backup an toàn, tách quyền xóa | ADR đã nêu delete-authority matrix | `Needs enforcement evidence or accepted risk` |
 
 ## 3. Data-tier baseline cần có trước buổi drill
@@ -80,7 +80,8 @@ RDS đã có target cụ thể trong ADR và có measured result:
 RDS RPO target: <= 5 phút
 RDS RPO evidence: T_restore cách GOOD 41.248131 giây, restored marker GOOD, 0 row data loss
 RDS RTO target: <= 45 phút
-RDS RTO measured: 23.83 phút
+RDS infrastructure available elapsed: 23.83 phút
+RDS end-to-end RTO: pending successful-query timestamp addendum
 ```
 
 Phần còn thiếu cho non-RDS stores:
@@ -99,7 +100,7 @@ Evidence đã có:
 - `T_restore`: 2026-07-29T12:03:00Z
 - `T_corrupt_commit_utc`: 2026-07-29T12:15:18.439171Z
 - RPO evidence: `T_restore` cách GOOD 41.248131 giây, restored marker GOOD, 0 row data loss
-- RTO measured: 23.83 phút
+- Infrastructure available elapsed: 23.83 phút; end-to-end RTO pending successful-query timestamp
 - Restored DB GOOD query: captured in video/evidence record
 
 ### Requirement 4 - Tested restore drill
@@ -110,7 +111,7 @@ Evidence:
 
 - [docs/evidence/mandate-20/mandate-20-final-rds-pitr-evidence-20260729.md](mandate-20-final-rds-pitr-evidence-20260729.md)
 - 4 video đã quay, Drive links đã ghi trong final evidence
-- RTO `23.83 phút`, trong target `<= 45 phút`
+- Infrastructure available elapsed `23.83 phút`; chưa dùng làm final RTO vì successful query không có timestamp UTC
 - Production marker vẫn `CORRUPTED_AFTER_GOOD_TIME`
 - Restored drill DB marker trả `GOOD_BEFORE_CORRUPTION`
 

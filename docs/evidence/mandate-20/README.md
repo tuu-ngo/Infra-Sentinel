@@ -6,7 +6,7 @@ Evidence index cho Mandate #20 Backup/Restore DR.
 
 | Loại | File | Vai trò |
 |---|---|---|
-| Final evidence | [mandate-20-final-rds-pitr-evidence-20260729.md](mandate-20-final-rds-pitr-evidence-20260729.md) | Bằng chứng cuối của RDS PITR drill: GOOD -> CORRUPTED -> restored GOOD, RPO pass, RTO 23.83 phút, link 4 video |
+| Final evidence | [mandate-20-final-rds-pitr-evidence-20260729.md](mandate-20-final-rds-pitr-evidence-20260729.md) | Bằng chứng RDS PITR drill: GOOD -> CORRUPTED -> restored GOOD, marker RPO pass, infrastructure available elapsed 23.83 phút, link 4 video |
 | Supporting evidence | [supporting-production-baseline-20260729.md](supporting-production-baseline-20260729.md) | Baseline production thật cho các data-tier/state trước drill |
 | Supporting evidence | [supporting-rds-pitr-preflight-20260729.md](supporting-rds-pitr-preflight-20260729.md) | Preflight RDS/PITR read-only trước drill |
 | Supporting evidence | [supporting-scope-gap-analysis.md](supporting-scope-gap-analysis.md) | Matrix đối chiếu directive với scope đã claim, limitation, và phần cần accepted risk |
@@ -19,6 +19,7 @@ Evidence index cho Mandate #20 Backup/Restore DR.
 | [docs/adr/0016-mandate-20-backup-restore-drill-cdo02.md](../../adr/0016-mandate-20-backup-restore-drill-cdo02.md) | ADR RPO/RTO, backup strategy/cadence, retention, delete-authority posture, restore drill approach |
 | [docs/runbooks/mandate-20-rds-pitr-drill.md](../../runbooks/mandate-20-rds-pitr-drill.md) | Runbook chạy RDS PITR drill an toàn, restore sang DB tách biệt |
 | [docs/docx_cdo02/mandate-20-rds-pitr-restore-solution.md](../../docx_cdo02/mandate-20-rds-pitr-restore-solution.md) | Solution note cho CDO02/mentor review |
+| [docs/docx_cdo02/mandate-20-rpo-rto-contract-and-drill-selection.md](../../docx_cdo02/mandate-20-rpo-rto-contract-and-drill-selection.md) | Contract RPO/RTO v1 và decision matrix giải thích vì sao RDS là main proof thay vì Valkey/MSK |
 
 ## Current Status
 
@@ -26,7 +27,8 @@ Evidence index cho Mandate #20 Backup/Restore DR.
 CDO02 design/ADR: ready
 RDS PITR drill evidence: completed, Drive links recorded
 RDS RPO target <= 5 minutes: PASS for drill marker
-RDS RTO target <= 45 minutes: PASS, measured 23.83 minutes
+RDS infrastructure available elapsed: 23.83 minutes
+RDS end-to-end RTO target <= 45 minutes: pending successful-query timestamp addendum
 Backup delete-permission verdict: pending enforcement evidence or accepted-risk note
 Mandate #20 overall: RDS drill passed; overall Done still depends on accepted scope/limitations for non-RDS stores and delete-authority posture
 ```
@@ -60,12 +62,12 @@ Witness mode: mentor/PM live hoặc recorded video
 
 | Store / state | RPO/RTO status | Backup/retention status | Evidence |
 |---|---|---|---|
-| RDS PostgreSQL | Target set: RPO <= 5 phút, RTO <= 45 phút; RPO passed with 0 row data loss; measured RTO 23.83 phút | Automated backup/PITR 7 ngày, RDS PITR drill passed | [mandate-20-final-rds-pitr-evidence-20260729.md](mandate-20-final-rds-pitr-evidence-20260729.md) |
-| ElastiCache Valkey | Pending final target or accepted cart-state limitation | Snapshot retention observed as 3 ngày, needs verdict | Snapshot/restore evidence or accepted cart-state strategy |
-| MSK Kafka | Pending replay/reconciliation target; do not call PITR | Retention/replay strategy needs capture | Retention/replay or order reconciliation explanation |
-| DynamoDB lock | Pending exclusion/verdict | Exclude if Terraform lock only | Exclusion reason |
-| EBS legacy | Pending M8/M18 decision | Do not use as M20 proof unless ownership is clarified | Pending/accepted limitation |
-| GitOps/IaC state | Pending state restore target if claimed | Git/state/versioning/Object Lock evidence if claimed | Commit/state/backend evidence |
+| RDS PostgreSQL | RPO `<= 5 phút` passed with 0 row data loss; RTO `<= 45 phút` contract ends at successful query, so end-to-end timestamp addendum is pending | Automated backup/PITR 7 ngày; infrastructure available elapsed 23.83 phút; restore correctness passed | [mandate-20-final-rds-pitr-evidence-20260729.md](mandate-20-final-rds-pitr-evidence-20260729.md) |
+| ElastiCache Valkey | Contract: RPO `<= 24 giờ`, RTO `<= 60 phút` | Daily snapshot window, retention 3 ngày | Snapshot observed; isolated restore drill pending |
+| MSK Kafka | Contract: no acknowledged-event loss trong retention window, replay RTO `<= 60 phút`; do not call PITR | Continuous replication, retention 168 giờ | Retention observed; bounded replay/reconciliation drill pending |
+| DynamoDB lock | Business-data RPO `N/A`; rebuild RTO `<= 15 phút` | Exclude khi chỉ là Terraform lock | Mentor-approved exclusion/rebuild evidence pending |
+| EBS/PVC stateful data | `NOT_PRESENT`; contract gate mở lại nếu volume tái xuất hiện | Không claim backup cho resource không tồn tại | Re-inventory/conditional exclusion evidence |
+| GitOps/IaC/config/secret references | Contract: RPO `<= 15 phút`, RTO `<= 60 phút` | Git/state/version recovery path | Recovery drill và retention/delete-control evidence pending |
 | IAM/KMS/delete permission | Pending enforcement or accepted risk | Delete authority matrix needs review/accepted risk | Security verdict or recorded accepted-risk note required |
 
 ## Current Recommendation

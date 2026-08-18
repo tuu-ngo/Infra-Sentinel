@@ -156,9 +156,9 @@ aws rds wait db-instance-available `
   --region $Region `
   --db-instance-identifier $DrillId
 
-$End = Get-Date
-$Rto = $End - $Start
-"RTO measured: $($Rto.TotalMinutes) minutes"
+$InfrastructureAvailableAt = Get-Date
+$InfrastructureElapsed = $InfrastructureAvailableAt - $Start
+"Infrastructure available elapsed: $($InfrastructureElapsed.TotalMinutes) minutes"
 ```
 
 Inventory DB drill:
@@ -195,6 +195,17 @@ expected_payload = CORRUPTED_AFTER_GOOD_TIME
 ```
 
 Trong trường hợp fail, không claim pass. Dừng lại, lưu lỗi, không patch production để "cứu" drill.
+
+Ngay sau khi query trên **drill endpoint** trả `GOOD_BEFORE_CORRUPTION`, khóa timestamp end-to-end:
+
+```powershell
+$VerifiedAt = Get-Date
+$Rto = $VerifiedAt - $Start
+"Successful restored-data query at: $($VerifiedAt.ToUniversalTime().ToString('o'))"
+"End-to-end RTO measured: $($Rto.TotalMinutes) minutes"
+```
+
+Không dùng `$InfrastructureAvailableAt` làm RTO end. Contract yêu cầu timer kết thúc sau successful restored-data query.
 
 ## 9. Cleanup
 
@@ -237,8 +248,10 @@ T_restore:
 T_corrupt_commit:
 DB drill identifier:
 Drill marker id:
-Restore start/end:
-RTO measured:
+Restore start:
+Infrastructure available at / elapsed:
+Successful restored-data query at:
+End-to-end RTO measured:
 Production corrupt query:
 Restored DB GOOD query:
 Cleanup result:

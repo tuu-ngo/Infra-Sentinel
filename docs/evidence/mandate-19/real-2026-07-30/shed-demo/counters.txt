@@ -1,0 +1,21 @@
+### Envoy local_ratelimit counters — ĐANG overload, 2026-07-30T07:57:27Z
+### pod: frontend-proxy-546b4cd898-fszwb   (admin port 10000)
+### browse_rate_limiter.*    = bucket per-route trên browse_shedable
+### http_local_rate_limiter.* = bucket global fallback — route protected dùng cái này
+
+browse_rate_limiter.http_local_rate_limit.enabled: 106883
+browse_rate_limiter.http_local_rate_limit.enforced: 19539
+browse_rate_limiter.http_local_rate_limit.ok: 87344
+browse_rate_limiter.http_local_rate_limit.rate_limited: 19539
+copilot_chat_rate_limiter.http_local_rate_limit.enabled: 4
+copilot_chat_rate_limiter.http_local_rate_limit.enforced: 0
+copilot_chat_rate_limiter.http_local_rate_limit.ok: 4
+copilot_chat_rate_limiter.http_local_rate_limit.rate_limited: 0
+copilot_confirm_rate_limiter.http_local_rate_limit.enabled: 0
+copilot_confirm_rate_limiter.http_local_rate_limit.enforced: 0
+copilot_confirm_rate_limiter.http_local_rate_limit.ok: 0
+copilot_confirm_rate_limiter.http_local_rate_limit.rate_limited: 0
+local_rate_limiter.http_local_rate_limit.enabled: 148919
+local_rate_limiter.http_local_rate_limit.enforced: 0
+local_rate_limiter.http_local_rate_limit.ok: 148919
+local_rate_limiter.http_local_rate_limit.rate_limited: 0

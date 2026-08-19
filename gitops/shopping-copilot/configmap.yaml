@@ -61,9 +61,6 @@ data:
   # shipping. NO_PROXY additionally exempts cluster-local names for any client that reads it.
   HTTPS_PROXY: "http://shopping-copilot-egress-proxy.techx-tf3.svc.cluster.local:3128"
   NO_PROXY: "localhost,127.0.0.1,.svc,.svc.cluster.local,.cluster.local,10.0.0.0/8,172.20.0.0/16"
-  # Pinned so the Titan embed client (genai_cache reads AWS_DEFAULT_REGION, default us-east-1)
-  # and regional STS resolve to ap-southeast-1 - both are on the proxy allowlist.
-  AWS_DEFAULT_REGION: "ap-southeast-1"
 
   # ── Mandate-23 GenAI semantic cache (AIE2 copilot update) ────────
   # Tier-2 lookup embeds the query with amazon.titan-embed-text-v2:0; the IRSA role allows

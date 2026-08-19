@@ -1,0 +1,9 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,/api/product-ask-ai-assistant/[id],"gaierror(-3, 'Temporary failure in name resolution')",1,2026-07-30T02:48:21Z,2026-07-30T02:48:21Z
+GET,/api/products/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/products/[id]'),92,2026-07-30T02:48:14Z,2026-07-30T02:48:18Z
+GET,/api/data/,"gaierror(-3, 'Temporary failure in name resolution')",1,2026-07-30T02:48:16Z,2026-07-30T02:48:16Z
+GET,/api/products/[id],"gaierror(-3, 'Temporary failure in name resolution')",6,2026-07-30T02:48:16Z,2026-07-30T02:48:22Z
+GET,/api/products/[id],HTTPError('503 Server Error: Service Unavailable for url: /api/products/[id]'),1,2026-07-30T02:49:20Z,2026-07-30T02:49:20Z
+GET,/api/product-reviews/[id],HTTPError('503 Server Error: Service Unavailable for url: /api/product-reviews/[id]'),9,2026-07-30T02:48:14Z,2026-07-30T02:48:17Z
+GET,/api/data/,RemoteDisconnected('Remote end closed connection without response'),2,2026-07-30T02:48:55Z,2026-07-30T02:48:56Z
+GET,/api/recommendations,"gaierror(-3, 'Temporary failure in name resolution')",1,2026-07-30T02:48:16Z,2026-07-30T02:48:16Z

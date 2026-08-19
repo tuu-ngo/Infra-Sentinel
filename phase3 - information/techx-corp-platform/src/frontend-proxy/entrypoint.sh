@@ -1,8 +1,8 @@
 #!/bin/sh
 set -eu
 
-: "${BROWSE_RATE_LIMIT_MAX_TOKENS:=100}"
-: "${BROWSE_RATE_LIMIT_TOKENS_PER_FILL:=50}"
+: "${BROWSE_RATE_LIMIT_MAX_TOKENS:=66}"   # 100 -> 66: xem values-prod.yaml, hiệu chỉnh 30/07
+: "${BROWSE_RATE_LIMIT_TOKENS_PER_FILL:=33}"  # 50 -> 33: budget/replica x maxReplicas 12 = 396 ~ điểm bảo vệ đã kiểm chứng
 : "${BROWSE_RATE_LIMIT_FILL_INTERVAL:=1s}"
 : "${BROWSE_RATE_LIMIT_ENABLED_PERCENT:=100}"
 : "${BROWSE_RATE_LIMIT_ENFORCED_PERCENT:=100}"

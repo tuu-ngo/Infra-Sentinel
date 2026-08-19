@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { CallOptions, ChannelCredentials, Metadata } from '@grpc/grpc-js';
+import { dnsTarget, loadBalancedChannelOptions } from './grpcChannel';
 import { GetSupportedCurrenciesResponse, CurrencyServiceClient, Money } from '../../protos/demo';
 
 const { CURRENCY_ADDR = '' } = process.env;
@@ -12,7 +13,11 @@ const { CURRENCY_ADDR = '' } = process.env;
 // call rejects fast instead of hanging.
 const CURRENCY_DEADLINE_MS = Number(process.env.CURRENCY_DEADLINE_MS) || 500;
 
-const client = new CurrencyServiceClient(CURRENCY_ADDR, ChannelCredentials.createInsecure());
+const client = new CurrencyServiceClient(
+  dnsTarget(CURRENCY_ADDR),
+  ChannelCredentials.createInsecure(),
+  loadBalancedChannelOptions
+);
 
 const callOptions = (): Partial<CallOptions> => ({ deadline: Date.now() + CURRENCY_DEADLINE_MS });
 

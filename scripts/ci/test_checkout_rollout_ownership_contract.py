@@ -103,7 +103,12 @@ def test_checkout_rollout_is_the_only_replica_owner():
         "name": "checkout-rollout",
     }
     assert checkout_hpa["spec"]["minReplicas"] == 2
-    assert checkout_hpa["spec"]["maxReplicas"] == 8
+    # maxReplicas 8 -> 14 (Mandate-19 capacity step, 30/07/2026). Trọng tâm của test
+    # này là "Rollout là chủ sở hữu replica duy nhất" — điều đó không đổi. Chỉ trần
+    # replica thay đổi, theo số đo trên node-set cố định 9 node: checkout đứng ở 8/8
+    # replica với 89%/65% tại stage vỡ 1400 user và 3.912/5.526 đơn trả 504, trong
+    # khi CPU node cao nhất chỉ 60%. Xem docs/evidence/mandate-19/real-2026-07-30/.
+    assert checkout_hpa["spec"]["maxReplicas"] == 14
 
     application = yaml.safe_load(APPLICATION.read_text(encoding="utf-8"))
     checkout_ignores = {

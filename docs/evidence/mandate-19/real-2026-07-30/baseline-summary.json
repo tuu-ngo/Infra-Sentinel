@@ -1,0 +1,264 @@
+{
+ "arm": "baseline",
+ "date": "2026-07-30",
+ "generator": "ngoài cluster, qua CloudFront",
+ "slo_source": "Prometheus, query lấy từ slo-dashboard.json, exact window 5 phút",
+ "stages": [
+  {
+   "users": 200,
+   "sli_verdict": "FAIL",
+   "gates": {
+    "browse_success>=99.5%": {
+     "pass": false,
+     "value": 98.9574
+    },
+    "browse_p95<1000ms": {
+     "pass": true,
+     "value": 45.1
+    },
+    "cart_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "checkout_success>=99%": {
+     "pass": true,
+     "value": 100.0
+    }
+   },
+   "served_frontend_rps": 193.23,
+   "browse_rps": 110.5,
+   "node_count": 7,
+   "node_set_sha256": "f892e10e0446e44caf513c53910f69248a4e3de1e1944f6b380c1d1c8a6f8177",
+   "density_rps_per_node": 27.6,
+   "checkout_client_req": 938,
+   "checkout_client_fail": 1,
+   "checkout_client_success_pct": 99.893,
+   "offered_locust_rps": 41.09142209816937,
+   "overall_client_fail_pct": 0.5272
+  },
+  {
+   "users": 400,
+   "sli_verdict": "PASS",
+   "gates": {
+    "browse_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "browse_p95<1000ms": {
+     "pass": true,
+     "value": 44.6
+    },
+    "cart_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "checkout_success>=99%": {
+     "pass": true,
+     "value": 100.0
+    }
+   },
+   "served_frontend_rps": 268.69,
+   "browse_rps": 153.5,
+   "node_count": 9,
+   "node_set_sha256": "54755c311f1a64b9fc5db98ead3f8bb2051f150ab9f8f6da2b7bd7561e7f22f1",
+   "density_rps_per_node": 29.85,
+   "checkout_client_req": 1695,
+   "checkout_client_fail": 0,
+   "checkout_client_success_pct": 100.0,
+   "offered_locust_rps": 76.22576182859625,
+   "overall_client_fail_pct": 0.3529
+  },
+  {
+   "users": 600,
+   "sli_verdict": "PASS",
+   "gates": {
+    "browse_success>=99.5%": {
+     "pass": true,
+     "value": 99.9963
+    },
+    "browse_p95<1000ms": {
+     "pass": true,
+     "value": 46.9
+    },
+    "cart_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "checkout_success>=99%": {
+     "pass": true,
+     "value": 100.0
+    }
+   },
+   "served_frontend_rps": 360.77,
+   "browse_rps": 207.03,
+   "node_count": 9,
+   "node_set_sha256": "54755c311f1a64b9fc5db98ead3f8bb2051f150ab9f8f6da2b7bd7561e7f22f1",
+   "density_rps_per_node": 40.09,
+   "checkout_client_req": 2736,
+   "checkout_client_fail": 1,
+   "checkout_client_success_pct": 99.963,
+   "offered_locust_rps": 121.98222065976606,
+   "overall_client_fail_pct": 0.2615
+  },
+  {
+   "users": 800,
+   "sli_verdict": "PASS",
+   "gates": {
+    "browse_success>=99.5%": {
+     "pass": true,
+     "value": 99.9578
+    },
+    "browse_p95<1000ms": {
+     "pass": true,
+     "value": 56.2
+    },
+    "cart_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "checkout_success>=99%": {
+     "pass": true,
+     "value": 100.0
+    }
+   },
+   "served_frontend_rps": 444.58,
+   "browse_rps": 256.46,
+   "node_count": 9,
+   "node_set_sha256": "54755c311f1a64b9fc5db98ead3f8bb2051f150ab9f8f6da2b7bd7561e7f22f1",
+   "density_rps_per_node": 49.4,
+   "checkout_client_req": 3677,
+   "checkout_client_fail": 0,
+   "checkout_client_success_pct": 100.0,
+   "offered_locust_rps": 164.13595930694166,
+   "overall_client_fail_pct": 0.0174
+  },
+  {
+   "users": 1000,
+   "sli_verdict": "PASS",
+   "gates": {
+    "browse_success>=99.5%": {
+     "pass": true,
+     "value": 99.9343
+    },
+    "browse_p95<1000ms": {
+     "pass": true,
+     "value": 88.3
+    },
+    "cart_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "checkout_success>=99%": {
+     "pass": true,
+     "value": 100.0
+    }
+   },
+   "served_frontend_rps": 531.06,
+   "browse_rps": 304.47,
+   "node_count": 9,
+   "node_set_sha256": "54755c311f1a64b9fc5db98ead3f8bb2051f150ab9f8f6da2b7bd7561e7f22f1",
+   "density_rps_per_node": 59.01,
+   "checkout_client_req": 4585,
+   "checkout_client_fail": 5,
+   "checkout_client_success_pct": 99.891,
+   "offered_locust_rps": 202.95994208008688,
+   "overall_client_fail_pct": 0.2803
+  },
+  {
+   "users": 1400,
+   "sli_verdict": "PASS",
+   "gates": {
+    "browse_success>=99.5%": {
+     "pass": true,
+     "value": 99.7259
+    },
+    "browse_p95<1000ms": {
+     "pass": true,
+     "value": 118.5
+    },
+    "cart_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "checkout_success>=99%": {
+     "pass": true,
+     "value": 100.0
+    }
+   },
+   "served_frontend_rps": 601.15,
+   "browse_rps": 343.59,
+   "node_count": 9,
+   "node_set_sha256": "54755c311f1a64b9fc5db98ead3f8bb2051f150ab9f8f6da2b7bd7561e7f22f1",
+   "density_rps_per_node": 66.79,
+   "checkout_client_req": 5526,
+   "checkout_client_fail": 3912,
+   "checkout_client_success_pct": 29.207,
+   "offered_locust_rps": 248.81579955425457,
+   "overall_client_fail_pct": 4.0351
+  },
+  {
+   "users": 1800,
+   "sli_verdict": "FAIL",
+   "gates": {
+    "browse_success>=99.5%": {
+     "pass": false,
+     "value": 99.2073
+    },
+    "browse_p95<1000ms": {
+     "pass": true,
+     "value": 233.5
+    },
+    "cart_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "checkout_success>=99%": {
+     "pass": true,
+     "value": 100.0
+    }
+   },
+   "served_frontend_rps": 746.01,
+   "browse_rps": 428.93,
+   "node_count": 9,
+   "node_set_sha256": "54755c311f1a64b9fc5db98ead3f8bb2051f150ab9f8f6da2b7bd7561e7f22f1",
+   "density_rps_per_node": 82.89,
+   "checkout_client_req": 6961,
+   "checkout_client_fail": 6465,
+   "checkout_client_success_pct": 7.125,
+   "offered_locust_rps": 315.8292089794513,
+   "overall_client_fail_pct": 5.5658
+  },
+  {
+   "users": 2400,
+   "sli_verdict": "FAIL",
+   "gates": {
+    "browse_success>=99.5%": {
+     "pass": false,
+     "value": 80.9842
+    },
+    "browse_p95<1000ms": {
+     "pass": true,
+     "value": 745.9
+    },
+    "cart_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "checkout_success>=99%": {
+     "pass": true,
+     "value": 100.0
+    }
+   },
+   "served_frontend_rps": 916.69,
+   "browse_rps": 528.46,
+   "node_count": 9,
+   "node_set_sha256": "54755c311f1a64b9fc5db98ead3f8bb2051f150ab9f8f6da2b7bd7561e7f22f1",
+   "density_rps_per_node": 101.85,
+   "checkout_client_req": 8877,
+   "checkout_client_fail": 8875,
+   "checkout_client_success_pct": 0.023,
+   "offered_locust_rps": 407.25034850340603,
+   "overall_client_fail_pct": 15.9146
+  }
+ ]
+}

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { CallOptions, ChannelCredentials, Metadata } from '@grpc/grpc-js';
+import { dnsTarget, loadBalancedChannelOptions } from './grpcChannel';
 import {ProductReview, ProductReviewServiceClient} from '../../protos/demo';
 
 const { PRODUCT_REVIEWS_ADDR = '' } = process.env;
@@ -16,7 +17,11 @@ const PRODUCT_REVIEWS_DEADLINE_MS = Number(process.env.PRODUCT_REVIEWS_DEADLINE_
 // is acceptable.
 const PRODUCT_AI_DEADLINE_MS = Number(process.env.PRODUCT_AI_DEADLINE_MS) || 15000;
 
-const client = new ProductReviewServiceClient(PRODUCT_REVIEWS_ADDR, ChannelCredentials.createInsecure());
+const client = new ProductReviewServiceClient(
+  dnsTarget(PRODUCT_REVIEWS_ADDR),
+  ChannelCredentials.createInsecure(),
+  loadBalancedChannelOptions
+);
 
 const deadlineOf = (ms: number): Partial<CallOptions> => ({ deadline: Date.now() + ms });
 

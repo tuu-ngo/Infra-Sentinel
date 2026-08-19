@@ -1,0 +1,29 @@
+### Bằng chứng client-side load balancing — 2026-07-30T09:07:41Z
+### frontend image: sha256:0e9997d6e40bacdd68a3aac7f7df87a142fbd4e2beb3ef84741297b736fbc042
+### PRODUCT_CATALOG_ADDR: product-catalog-headless:8080
+### tải: 600 user qua CloudFront
+
+## TRƯỚC (ClusterIP + pick_first, product-catalog ở 11 replica) — đo cùng ngày, trước PR #664
+   xxhsp 353m · cw8nx 136m · pzcxg 11m · TÁM pod còn lại 1-2m   -> chỉ 2/11 pod nhận traffic
+
+## SAU (headless + round_robin)
+### product-catalog
+product-catalog-694b86d8fb-2pjtx   59m   11Mi   
+product-catalog-694b86d8fb-7hdnh   32m   11Mi   
+product-catalog-694b86d8fb-qh6r2   20m   12Mi   
+product-catalog-694b86d8fb-7m5td   15m   12Mi   
+### product-reviews
+product-reviews-7bb896dfb-fnvrh   77m   104Mi   
+product-reviews-7bb896dfb-m9lv8   49m   103Mi   
+### email
+email-5c88c996b6-r9ssn   33m   56Mi   
+email-5c88c996b6-p5p2d   29m   52Mi   
+### cart
+cart-7dc66cd5cd-qngbz   72m   67Mi   
+cart-7dc66cd5cd-njrk8   40m   62Mi   
+
+### endpoints headless
+  product-catalog-headless     10.0.1.101 10.0.3.118 10.0.36.165 10.0.39.121
+  product-reviews-headless     10.0.32.183 10.0.6.139
+  email-headless               10.0.12.254 10.0.26.137
+  cart-headless                10.0.41.58 10.0.7.173

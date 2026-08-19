@@ -1,0 +1,9 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,/api/cart,HTTPError('503 Server Error: Service Unavailable for url: /api/cart'),1,2026-07-30T05:33:09Z,2026-07-30T05:33:09Z
+GET,/api/products/[id],RemoteDisconnected('Remote end closed connection without response'),1,2026-07-30T05:31:58Z,2026-07-30T05:31:58Z
+GET,/api/products/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/products/[id]'),311,2026-07-30T05:29:10Z,2026-07-30T05:34:35Z
+GET,/api/products/[id],HTTPError('503 Server Error: Service Unavailable for url: /api/products/[id]'),1,2026-07-30T05:29:27Z,2026-07-30T05:29:27Z
+POST,/api/checkout,HTTPError('504 Server Error: Gateway Timeout for url: /api/checkout'),3432,2026-07-30T05:31:38Z,2026-07-30T05:36:07Z
+GET,/api/product-reviews/[id],HTTPError('503 Server Error: Service Unavailable for url: /api/product-reviews/[id]'),431,2026-07-30T05:29:11Z,2026-07-30T05:35:59Z
+GET,/api/data/,RemoteDisconnected('Remote end closed connection without response'),1,2026-07-30T05:31:58Z,2026-07-30T05:31:58Z
+POST,/api/checkout,HTTPError('500 Server Error: Internal Server Error for url: /api/checkout'),10,2026-07-30T05:29:11Z,2026-07-30T05:31:42Z

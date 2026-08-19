@@ -1,0 +1,5 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+GET,/api/product-reviews/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/product-reviews/[id]'),1,2026-07-30T09:35:29Z,2026-07-30T09:35:29Z
+GET,/api/products/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/products/[id]'),695,2026-07-30T09:34:12Z,2026-07-30T09:37:02Z
+GET,/api/product-reviews/[id],HTTPError('503 Server Error: Service Unavailable for url: /api/product-reviews/[id]'),184,2026-07-30T09:34:11Z,2026-07-30T09:37:03Z
+POST,/api/checkout,HTTPError('500 Server Error: Internal Server Error for url: /api/checkout'),11,2026-07-30T09:34:12Z,2026-07-30T09:37:00Z

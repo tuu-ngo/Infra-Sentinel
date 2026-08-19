@@ -95,7 +95,9 @@ data:
                                         - header:
                                             name: ":authority"
                                             string_match:
-                                              exact: sts.amazonaws.com:443
+                                              safe_regex:
+                                                google_re2: {}
+                                                regex: '^sts\.amazonaws\.com(?::443)?$'
                                   - and_rules:
                                       rules:
                                         - header:
@@ -105,7 +107,9 @@ data:
                                         - header:
                                             name: ":authority"
                                             string_match:
-                                              exact: sts.ap-southeast-1.amazonaws.com:443
+                                              safe_regex:
+                                                google_re2: {}
+                                                regex: '^sts\.ap-southeast-1\.amazonaws\.com(?::443)?$'
                                   - and_rules:
                                       rules:
                                         - header:
@@ -115,7 +119,9 @@ data:
                                         - header:
                                             name: ":authority"
                                             string_match:
-                                              exact: s3.ap-southeast-1.amazonaws.com:443
+                                              safe_regex:
+                                                google_re2: {}
+                                                regex: '^s3\.ap-southeast-1\.amazonaws\.com(?::443)?$'
                                   - and_rules:
                                       rules:
                                         - header:
@@ -125,7 +131,9 @@ data:
                                         - header:
                                             name: ":authority"
                                             string_match:
-                                              exact: tf3-aiops-models-197826770971.s3.amazonaws.com:443
+                                              safe_regex:
+                                                google_re2: {}
+                                                regex: '^tf3-aiops-models-197826770971\.s3\.amazonaws\.com(?::443)?$'
                                   - and_rules:
                                       rules:
                                         - header:
@@ -135,7 +143,9 @@ data:
                                         - header:
                                             name: ":authority"
                                             string_match:
-                                              exact: tf3-aiops-models-197826770971.s3.ap-southeast-1.amazonaws.com:443
+                                              safe_regex:
+                                                google_re2: {}
+                                                regex: '^tf3-aiops-models-197826770971\.s3\.ap-southeast-1\.amazonaws\.com(?::443)?$'
                                   - and_rules:
                                       rules:
                                         - header:
@@ -145,7 +155,9 @@ data:
                                         - header:
                                             name: ":authority"
                                             string_match:
-                                              exact: bedrock-runtime.us-east-1.amazonaws.com:443
+                                              safe_regex:
+                                                google_re2: {}
+                                                regex: '^bedrock-runtime\.us-east-1\.amazonaws\.com(?::443)?$'
                                   - and_rules:
                                       rules:
                                         - header:
@@ -155,7 +167,9 @@ data:
                                         - header:
                                             name: ":authority"
                                             string_match:
-                                              exact: bedrock-agent-runtime.us-east-1.amazonaws.com:443
+                                              safe_regex:
+                                                google_re2: {}
+                                                regex: '^bedrock-agent-runtime\.us-east-1\.amazonaws\.com(?::443)?$'
                                 principals:
                                   - any: true
                       - name: envoy.filters.http.dynamic_forward_proxy
@@ -200,6 +214,8 @@ spec:
       labels:
         app.kubernetes.io/name: aiops-egress-proxy
         app.kubernetes.io/component: aiops-egress-proxy
+      annotations:
+        kubectl.kubernetes.io/restartedAt: '2026-07-30T22:42:43+07:00'
     spec:
       serviceAccountName: aiops-egress-proxy
       automountServiceAccountToken: false

@@ -2,11 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ChannelCredentials } from '@grpc/grpc-js';
+import { dnsTarget, loadBalancedChannelOptions } from './grpcChannel';
 import { Cart, CartItem, CartServiceClient, Empty } from '../../protos/demo';
 
 const { CART_ADDR = '' } = process.env;
 
-const client = new CartServiceClient(CART_ADDR, ChannelCredentials.createInsecure());
+const client = new CartServiceClient(
+  dnsTarget(CART_ADDR),
+  ChannelCredentials.createInsecure(),
+  loadBalancedChannelOptions
+);
 
 const CartGateway = () => ({
   getCart(userId: string) {

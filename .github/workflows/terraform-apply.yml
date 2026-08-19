@@ -21,6 +21,8 @@ on:
           - pm127-kyverno-ecr
           - pm18-a1-vpc-endpoints
           - shopping-copilot
+          - m17-fis
+          - cloudflare-access
       allow_bastion_replacement:
         description: Explicitly acknowledge a reviewed shared-bastion replacement
         required: true
@@ -120,6 +122,31 @@ jobs:
               target_args=(
                 -target=module.eks_platform.aws_iam_role.shopping_copilot_bedrock
                 -target=module.eks_platform.aws_iam_role_policy.shopping_copilot_bedrock
+                -target=module.cloudflare_access
+              )
+              ;;
+            m17-fis)
+              # Mandate #17 req#2: the AWS FIS experiment role, its stop-condition alarm
+              # and the AZ-loss experiment template. Targets the five resources by name
+              # rather than the whole root module so this apply stays clear of the
+              # unrelated pending drift on main (m12 heartbeat teardown, the stateful_1a
+              # node group removal, the default node group min_size change).
+              # The FIS file looks its VPC up by tag instead of module.network.vpc_id so
+              # that -target does not pull the network module in here.
+              target_args=(
+                -target=aws_iam_role.fis_experiment
+                -target=aws_iam_role_policy_attachment.fis_network
+                -target=aws_iam_role_policy_attachment.fis_ec2
+                -target=aws_cloudwatch_metric_alarm.fis_storefront_5xx
+                -target=aws_fis_experiment_template.az_connectivity_loss
+              )
+              ;;
+            cloudflare-access)
+              # Chỉ danh sách Cloudflare Zero Trust: thêm/bớt người được vào các UI nội bộ
+              # (Grafana, Jaeger, ArgoCD, Copilot). Tách khỏi scope shopping-copilot vì
+              # scope đó còn kéo theo IRSA Bedrock của copilot — không liên quan gì tới
+              # việc cấp quyền truy cập cho người.
+              target_args=(
                 -target=module.cloudflare_access
               )
               ;;

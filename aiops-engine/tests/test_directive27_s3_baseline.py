@@ -2,11 +2,13 @@ import unittest
 import os
 import sys
 import json
+import tempfile
 import numpy as np
 import pandas as pd
 from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from anomaly_detector import AnomalyDetector
 from drift_detector import DataDriftDetector
 
 class TestDirective27S3Baseline(unittest.TestCase):
@@ -67,6 +69,68 @@ class TestDirective27S3Baseline(unittest.TestCase):
             self.assertEqual(self.detector.current_version, "v20260730-999999")
             self.assertIn("rps", self.detector.baselines)
             self.assertEqual(float(self.detector.baselines["rps"][0]), 200.0)
+
+    @patch("anomaly_detector.joblib.load")
+    @patch("anomaly_detector.boto3.client")
+    def test_anomaly_detector_loads_manifest_with_irsa_web_identity_env(self, mock_boto_client, mock_joblib_load):
+        mock_s3 = MagicMock()
+        mock_boto_client.return_value = mock_s3
+        mock_joblib_load.return_value = object()
+
+        manifest = {
+            "validation_passed": True,
+            "version": "v-irsa-test",
+            "f1_score_average": 0.91,
+            "model_paths": {
+                "checkout": "models/current/checkout_iforest.joblib",
+            },
+        }
+
+        with tempfile.TemporaryDirectory() as models_dir:
+            token_path = os.path.join(models_dir, "web-identity-token")
+            with open(token_path, "w", encoding="utf-8") as f:
+                f.write("token")
+
+            def fake_download_file(_bucket, key, filename):
+                if key == "active_manifest.json":
+                    with open(filename, "w", encoding="utf-8") as f:
+                        json.dump(manifest, f)
+                else:
+                    with open(filename, "wb") as f:
+                        f.write(b"model")
+
+            mock_s3.download_file.side_effect = fake_download_file
+
+            detector = object.__new__(AnomalyDetector)
+            detector.s3_bucket = "tf3-aiops-models-197826770971"
+            detector.models_dir = models_dir
+            detector.iforest_models = {}
+            detector.models = detector.iforest_models
+
+            with patch.dict(
+                os.environ,
+                {
+                    "AWS_ROLE_ARN": "arn:aws:iam::197826770971:role/techx-corp-tf3-aiops-engine",
+                    "AWS_WEB_IDENTITY_TOKEN_FILE": token_path,
+                    "AWS_DEFAULT_REGION": "ap-southeast-1",
+                },
+                clear=False,
+            ):
+                os.environ.pop("AWS_ACCESS_KEY_ID", None)
+                detector._load_models_from_s3()
+
+        mock_boto_client.assert_called_with("s3", region_name="ap-southeast-1")
+        mock_s3.download_file.assert_any_call(
+            "tf3-aiops-models-197826770971",
+            "active_manifest.json",
+            unittest.mock.ANY,
+        )
+        mock_s3.download_file.assert_any_call(
+            "tf3-aiops-models-197826770971",
+            "current/checkout_iforest.joblib",
+            unittest.mock.ANY,
+        )
+        self.assertIn("checkout", detector.iforest_models)
 
     @patch("requests.get")
     def test_extract_baseline_from_prometheus(self, mock_requests_get):

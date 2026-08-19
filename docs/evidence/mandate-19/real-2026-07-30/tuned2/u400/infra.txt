@@ -1,0 +1,41 @@
+### node_count
+8
+### node_set_sha256
+a05fe0c1700dd03f74790fc2d06708b8ee7bd857abf7dec6c3c185573b5cefcd  -
+### nodes
+ip-10-0-1-122.ap-southeast-1.compute.internal    Ready   <none>   3h     v1.35.6-eks-8f14419   flash-sale-spot-arm64             c6g.large
+ip-10-0-18-201.ap-southeast-1.compute.internal   Ready   <none>   144m   v1.35.6-eks-8f14419   elastic-ondemand-fallback-arm64   c6g.large
+ip-10-0-24-177.ap-southeast-1.compute.internal   Ready   <none>   8d     v1.35.6-eks-8f14419                                     t3.large
+ip-10-0-26-153.ap-southeast-1.compute.internal   Ready   <none>   16d    v1.35.6-eks-8f14419                                     t3.large
+ip-10-0-34-80.ap-southeast-1.compute.internal    Ready   <none>   66m    v1.35.6-eks-8f14419   flash-sale-spot-arm64             c8g.large
+ip-10-0-4-166.ap-southeast-1.compute.internal    Ready   <none>   15d    v1.35.6-eks-8f14419                                     t3.medium
+ip-10-0-43-83.ap-southeast-1.compute.internal    Ready   <none>   16d    v1.35.6-eks-8f14419                                     t3.large
+ip-10-0-8-134.ap-southeast-1.compute.internal    Ready   <none>   16d    v1.35.6-eks-8f14419                                     t3.large
+### hpa
+NAME                  REFERENCE                    TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+ad-hpa                Deployment/ad                cpu: 83%/65%   1         4         4          16d
+cart-hpa              Deployment/cart              cpu: 44%/65%   2         6         2          16d
+checkout-hpa          Rollout/checkout-rollout     cpu: 56%/65%   2         14        5          16d
+currency-hpa          Deployment/currency          cpu: 7%/65%    2         6         2          16d
+email-hpa             Deployment/email             cpu: 26%/60%   2         8         2          18m
+frontend-hpa          Deployment/frontend          cpu: 51%/65%   2         16        6          16d
+frontend-proxy-hpa    Deployment/frontend-proxy    cpu: 58%/65%   2         12        4          16d
+product-catalog-hpa   Deployment/product-catalog   cpu: 62%/65%   2         12        4          16d
+product-reviews-hpa   Deployment/product-reviews   cpu: 51%/75%   2         6         2          16d
+recommendation-hpa    Deployment/recommendation    cpu: 46%/65%   1         4         2          16d
+### top_nodes
+NAME                                             CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+ip-10-0-1-122.ap-southeast-1.compute.internal    926m         47%      1634Mi          52%         
+ip-10-0-18-201.ap-southeast-1.compute.internal   578m         29%      1557Mi          49%         
+ip-10-0-24-177.ap-southeast-1.compute.internal   679m         35%      4338Mi          61%         
+ip-10-0-26-153.ap-southeast-1.compute.internal   349m         18%      4012Mi          56%         
+ip-10-0-34-80.ap-southeast-1.compute.internal    276m         14%      1371Mi          43%         
+ip-10-0-4-166.ap-southeast-1.compute.internal    24m          1%       953Mi           28%         
+ip-10-0-43-83.ap-southeast-1.compute.internal    235m         12%      3173Mi          44%         
+ip-10-0-8-134.ap-southeast-1.compute.internal    879m         45%      3392Mi          47%         
+### restarts_oom
+aiops-engine-64dccffb47-xpqqq                    0/1   CrashLoopBackOff   25 (2m49s ago)   109m
+checkout-rollout-57fd56d4-s5wjv                  1/1   Running            1 (81m ago)      3h
+grafana-575c7b5476-zlggq                         4/4   Running            1 (40h ago)      45h
+### pending
+No resources found in techx-tf3 namespace.

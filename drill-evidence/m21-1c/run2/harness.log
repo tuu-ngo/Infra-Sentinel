@@ -1,0 +1,133 @@
+UTC                    chk_ok   brw_ok   crt_ok   chk_rt  chk_p95     orders  SLO
+--------------------------------------------------------------------------------------------
+query checkout_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query cart_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_rate failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query orders_confirmed failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query payment_txns failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+2026-07-31T02:06:32Z     n/a      n/a      n/a      n/a      n/a        n/a   
+query checkout_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query cart_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_rate failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query orders_confirmed failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query payment_txns failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+2026-07-31T02:07:09Z     n/a      n/a      n/a      n/a      n/a        n/a   
+query checkout_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query cart_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_rate failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query orders_confirmed failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query payment_txns failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+2026-07-31T02:07:47Z     n/a      n/a      n/a      n/a      n/a        n/a   
+query checkout_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query cart_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_rate failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query orders_confirmed failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query payment_txns failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+2026-07-31T02:08:25Z     n/a      n/a      n/a      n/a      n/a        n/a   
+query checkout_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query cart_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_rate failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query orders_confirmed failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query payment_txns failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+2026-07-31T02:09:02Z     n/a      n/a      n/a      n/a      n/a        n/a   
+query checkout_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query cart_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_rate failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query orders_confirmed failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query payment_txns failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+2026-07-31T02:09:40Z     n/a      n/a      n/a      n/a      n/a        n/a   
+query checkout_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query cart_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_rate failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query orders_confirmed failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query payment_txns failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+2026-07-31T02:10:18Z     n/a      n/a      n/a      n/a      n/a        n/a   
+query checkout_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query cart_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_rate failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query orders_confirmed failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query payment_txns failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+2026-07-31T02:10:56Z     n/a      n/a      n/a      n/a      n/a        n/a   
+query checkout_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query cart_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_rate failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query orders_confirmed failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query payment_txns failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+2026-07-31T02:11:33Z     n/a      n/a      n/a      n/a      n/a        n/a   
+query checkout_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query cart_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_rate failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query orders_confirmed failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query payment_txns failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+2026-07-31T02:12:11Z     n/a      n/a      n/a      n/a      n/a        n/a   
+query checkout_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query cart_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_rate failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query orders_confirmed failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query payment_txns failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+2026-07-31T02:12:49Z     n/a      n/a      n/a      n/a      n/a        n/a   
+query checkout_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query cart_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_rate failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query orders_confirmed failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query payment_txns failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+2026-07-31T02:13:26Z     n/a      n/a      n/a      n/a      n/a        n/a   
+query checkout_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query cart_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_rate failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query orders_confirmed failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query payment_txns failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+2026-07-31T02:14:04Z     n/a      n/a      n/a      n/a      n/a        n/a   
+query checkout_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query cart_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_rate failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query orders_confirmed failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query payment_txns failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+2026-07-31T02:14:42Z     n/a      n/a      n/a      n/a      n/a        n/a   
+query checkout_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query browse_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query cart_success failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_rate failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+query checkout_p95 failed: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { CallOptions, ChannelCredentials, Metadata } from '@grpc/grpc-js';
+import { dnsTarget, loadBalancedChannelOptions } from './grpcChannel';
 import { ListProductsResponse, Product, ProductCatalogServiceClient } from '../../protos/demo';
 
 const { PRODUCT_CATALOG_ADDR = '' } = process.env;
@@ -14,7 +15,11 @@ const { PRODUCT_CATALOG_ADDR = '' } = process.env;
 // error instead of hanging.
 const PRODUCT_CATALOG_DEADLINE_MS = Number(process.env.PRODUCT_CATALOG_DEADLINE_MS) || 500;
 
-const client = new ProductCatalogServiceClient(PRODUCT_CATALOG_ADDR, ChannelCredentials.createInsecure());
+const client = new ProductCatalogServiceClient(
+  dnsTarget(PRODUCT_CATALOG_ADDR),
+  ChannelCredentials.createInsecure(),
+  loadBalancedChannelOptions
+);
 
 const callOptions = (): Partial<CallOptions> => ({ deadline: Date.now() + PRODUCT_CATALOG_DEADLINE_MS });
 

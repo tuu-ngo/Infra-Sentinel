@@ -1,0 +1,45 @@
+### node_count
+9
+### node_set_sha256
+df1e544eace3a7aac66101944458c5609c75dbdbcc29741c2dcd38e3b3a26841  -
+### nodes
+ip-10-0-12-154.ap-southeast-1.compute.internal   Ready   <none>   36m     v1.35.6-eks-8f14419   flash-sale-spot-arm64             c6g.large
+ip-10-0-20-78.ap-southeast-1.compute.internal    Ready   <none>   24m     v1.35.6-eks-8f14419   elastic-ondemand-fallback-arm64   c6g.large
+ip-10-0-24-177.ap-southeast-1.compute.internal   Ready   <none>   8d      v1.35.6-eks-8f14419                                     t3.large
+ip-10-0-26-153.ap-southeast-1.compute.internal   Ready   <none>   16d     v1.35.6-eks-8f14419                                     t3.large
+ip-10-0-34-80.ap-southeast-1.compute.internal    Ready   <none>   3h34m   v1.35.6-eks-8f14419   flash-sale-spot-arm64             c8g.large
+ip-10-0-4-166.ap-southeast-1.compute.internal    Ready   <none>   15d     v1.35.6-eks-8f14419                                     t3.medium
+ip-10-0-43-83.ap-southeast-1.compute.internal    Ready   <none>   16d     v1.35.6-eks-8f14419                                     t3.large
+ip-10-0-5-127.ap-southeast-1.compute.internal    Ready   <none>   135m    v1.35.6-eks-8f14419   elastic-ondemand-fallback-arm64   c6g.large
+ip-10-0-8-134.ap-southeast-1.compute.internal    Ready   <none>   16d     v1.35.6-eks-8f14419                                     t3.large
+### hpa
+NAME                  REFERENCE                    TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+ad-hpa                Deployment/ad                cpu: 46%/65%   1         4         1          16d
+cart-hpa              Deployment/cart              cpu: 43%/65%   2         6         2          16d
+checkout-hpa          Rollout/checkout-rollout     cpu: 52%/65%   2         14        4          16d
+currency-hpa          Deployment/currency          cpu: 6%/65%    2         6         2          16d
+email-hpa             Deployment/email             cpu: 28%/60%   2         8         2          166m
+frontend-hpa          Deployment/frontend          cpu: 59%/65%   2         16        8          16d
+frontend-proxy-hpa    Deployment/frontend-proxy    cpu: 68%/65%   2         12        4          16d
+product-catalog-hpa   Deployment/product-catalog   cpu: 50%/65%   2         12        5          16d
+product-reviews-hpa   Deployment/product-reviews   cpu: 44%/75%   2         6         2          16d
+recommendation-hpa    Deployment/recommendation    cpu: 44%/65%   1         4         2          16d
+### top_nodes
+NAME                                             CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+ip-10-0-12-154.ap-southeast-1.compute.internal   674m         34%      1153Mi          36%         
+ip-10-0-20-78.ap-southeast-1.compute.internal    382m         19%      931Mi           29%         
+ip-10-0-24-177.ap-southeast-1.compute.internal   883m         45%      5402Mi          76%         
+ip-10-0-26-153.ap-southeast-1.compute.internal   368m         19%      2973Mi          42%         
+ip-10-0-34-80.ap-southeast-1.compute.internal    416m         21%      1712Mi          54%         
+ip-10-0-4-166.ap-southeast-1.compute.internal    29m          1%       954Mi           28%         
+ip-10-0-43-83.ap-southeast-1.compute.internal    169m         8%       2918Mi          41%         
+ip-10-0-5-127.ap-southeast-1.compute.internal    413m         21%      1580Mi          50%         
+ip-10-0-8-134.ap-southeast-1.compute.internal    800m         41%      3337Mi          47%         
+### restarts_oom
+accounting-7d84686dc6-hkb5w                      1/1   Running            2 (3m28s ago)    164m
+aiops-engine-5c877bddfc-bm5mq                    1/1   Running            3 (47m ago)      21h
+aiops-engine-64dccffb47-xpqqq                    0/1   CrashLoopBackOff   53 (2m41s ago)   4h17m
+grafana-575c7b5476-zlggq                         4/4   Running            1 (42h ago)      47h
+jaeger-5758598465-6r5qw                          1/1   Running            2 (134m ago)     2d1h
+### pending
+frontend-5bdb9d5df7-7x2tn   0/1   Pending   0     5m51s

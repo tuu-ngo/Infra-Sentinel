@@ -1,0 +1,82 @@
+{
+ "u200": {
+  "served_rps_client": 40.84,
+  "offered_rps_client": 41.34,
+  "browse_success_pct": 98.29,
+  "cart_success_pct": 99.965,
+  "checkout_success_pct": 99.895,
+  "checkout_req": 955,
+  "shed_429": 0,
+  "overall_fail_pct": 1.21
+ },
+ "u400": {
+  "served_rps_client": 80.86,
+  "offered_rps_client": 81.64,
+  "browse_success_pct": 98.678,
+  "cart_success_pct": 100.0,
+  "checkout_success_pct": 99.509,
+  "checkout_req": 1832,
+  "shed_429": 0,
+  "overall_fail_pct": 0.959
+ },
+ "u600": {
+  "served_rps_client": 122.95,
+  "offered_rps_client": 123.53,
+  "browse_success_pct": 99.367,
+  "cart_success_pct": 99.976,
+  "checkout_success_pct": 99.824,
+  "checkout_req": 2843,
+  "shed_429": 0,
+  "overall_fail_pct": 0.463
+ },
+ "u800": {
+  "served_rps_client": 163.6,
+  "offered_rps_client": 164.03,
+  "browse_success_pct": 99.635,
+  "cart_success_pct": 99.991,
+  "checkout_success_pct": 99.947,
+  "checkout_req": 3745,
+  "shed_429": 0,
+  "overall_fail_pct": 0.26
+ },
+ "u1000": {
+  "served_rps_client": 203.96,
+  "offered_rps_client": 204.5,
+  "browse_success_pct": 99.629,
+  "cart_success_pct": 100.0,
+  "checkout_success_pct": 99.957,
+  "checkout_req": 4633,
+  "shed_429": 0,
+  "overall_fail_pct": 0.263
+ },
+ "u1400": {
+  "served_rps_client": 270.19,
+  "offered_rps_client": 277.36,
+  "browse_success_pct": 96.465,
+  "cart_success_pct": 100.0,
+  "checkout_success_pct": 98.177,
+  "checkout_req": 6254,
+  "shed_429": 0,
+  "overall_fail_pct": 2.584
+ },
+ "u1800": {
+  "served_rps_client": 259.33,
+  "offered_rps_client": 333.41,
+  "browse_success_pct": 71.645,
+  "cart_success_pct": 99.996,
+  "checkout_success_pct": 56.936,
+  "checkout_req": 7540,
+  "shed_429": 0,
+  "overall_fail_pct": 22.217
+ },
+ "u2400": {
+  "served_rps_client": 293.32,
+  "offered_rps_client": 414.11,
+  "browse_success_pct": 63.449,
+  "cart_success_pct": 99.922,
+  "checkout_success_pct": 35.112,
+  "checkout_req": 9279,
+  "shed_429": 0,
+  "overall_fail_pct": 29.168
+ }
+}

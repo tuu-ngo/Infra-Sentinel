@@ -1,0 +1,59 @@
+﻿# EV-02 phân bố replica theo AZ (mục tiêu: mọi service ra tiền có >=1 replica NGOÀI ap-southeast-1b)
+# phase=during  utc=20260730-180347
+------------------------------------------------------------------------
+##### SERVICE CHỈ NẰM TRONG ĐÚNG 1 AZ — mất AZ đó là chết hẳn #####
+
+App             Replicas OnlyAZ         
+---             -------- ------         
+accounting             1 ap-southeast-1a
+grafana                1 ap-southeast-1a
+ad                     1 ap-southeast-1b
+aiops-engine           1 ap-southeast-1b
+fraud-detection        1 ap-southeast-1b
+image-provider         1 ap-southeast-1b
+jaeger                 1 ap-southeast-1b
+llm                    1 ap-southeast-1b
+opensearch             1 ap-southeast-1b
+recommendation         1 ap-southeast-1b
+flagd                  1 ap-southeast-1c
+prometheus             1 ap-southeast-1c
+
+
+##### Phân bố theo AZ mục tiêu (ap-southeast-1b) #####
+
+App                           Replicas AZs                                             Inap-southeast-1b Outside Verdic
+                                                                                                                 t     
+---                           -------- ---                                             ----------------- ------- ------
+accounting                           1 ap-southeast-1a                                                 0       1 ok    
+ad                                   1 ap-southeast-1b                                                 1       0 ALL...
+aiops-egress-proxy                   2 ap-southeast-1b,ap-southeast-1c                                 1       1 ok    
+aiops-engine                         1 ap-southeast-1b                                                 1       0 ALL...
+cart                                 2 ap-southeast-1a,ap-southeast-1c                                 0       2 ok    
+checkout                             2 ap-southeast-1a,ap-southeast-1c                                 0       2 ok    
+cloudflared                          2 ap-southeast-1a,ap-southeast-1c                                 0       2 ok    
+currency                             2 ap-southeast-1a,ap-southeast-1c                                 0       2 ok    
+email                                2 ap-southeast-1a,ap-southeast-1b                                 1       1 ok    
+flagd                                1 ap-southeast-1c                                                 0       1 ok    
+fraud-detection                      1 ap-southeast-1b                                                 1       0 ALL...
+frontend                             2 ap-southeast-1a,ap-southeast-1c                                 0       2 ok    
+frontend-proxy                       2 ap-southeast-1a,ap-southeast-1c                                 0       2 ok    
+grafana                              1 ap-southeast-1a                                                 0       1 ok    
+image-provider                       1 ap-southeast-1b                                                 1       0 ALL...
+jaeger                               1 ap-southeast-1b                                                 1       0 ALL...
+llm                                  1 ap-southeast-1b                                                 1       0 ALL...
+load-generator                       4 ap-southeast-1a,ap-southeast-1b,ap-southeast-1c                 1       3 ok    
+opensearch                           1 ap-southeast-1b                                                 1       0 ALL...
+otel-gateway                         2 ap-southeast-1a,ap-southeast-1c                                 0       2 ok    
+payment                              2 ap-southeast-1a,ap-southeast-1c                                 0       2 ok    
+product-catalog                      2 ap-southeast-1a,ap-southeast-1c                                 0       2 ok    
+product-reviews                      2 ap-southeast-1a,ap-southeast-1c                                 0       2 ok    
+product-reviews-egress-proxy         2 ap-southeast-1a,ap-southeast-1b                                 1       1 ok    
+prometheus                           1 ap-southeast-1c                                                 0       1 ok    
+quote                                2 ap-southeast-1a,ap-southeast-1c                                 0       2 ok    
+recommendation                       1 ap-southeast-1b                                                 1       0 ALL...
+shipping                             2 ap-southeast-1a,ap-southeast-1c                                 0       2 ok    
+shopping-copilot                     2 ap-southeast-1a,ap-southeast-1c                                 0       2 ok    
+shopping-copilot-egress-proxy        2 ap-southeast-1a,ap-southeast-1b                                 1       1 ok    
+
+
+

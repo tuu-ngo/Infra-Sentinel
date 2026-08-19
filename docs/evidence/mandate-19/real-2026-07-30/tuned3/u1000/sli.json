@@ -1,0 +1,31 @@
+{
+ "cart_success": 1.0,
+ "checkout_success": 1.0,
+ "checkout_rate": 10.649955625184894,
+ "checkout_p95": 653.023255813951,
+ "checkout_p99": 4759.999999999958,
+ "frontend_total_rate": 422.20240748996883,
+ "frontend_err_rate": 7.599968333465278,
+ "browse_success": 0.9693115699500541,
+ "browse_p95": 389.72326802961504,
+ "browse_rate": 242.76148849379794,
+ "_gates": {
+  "browse_success>=99.5%": {
+   "pass": false,
+   "value": 96.9312
+  },
+  "browse_p95<1000ms": {
+   "pass": true,
+   "value": 389.7
+  },
+  "cart_success>=99.5%": {
+   "pass": true,
+   "value": 100.0
+  },
+  "checkout_success>=99%": {
+   "pass": true,
+   "value": 100.0
+  }
+ },
+ "_verdict": "FAIL"
+}

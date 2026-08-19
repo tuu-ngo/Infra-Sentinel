@@ -1,0 +1,164 @@
+# Mandate #19 — headless Service cho các hop gRPC mà frontend gọi.
+#
+# VÌ SAO CẦN: Service ClusterIP trả về đúng MỘT VIP. gRPC giữ một kết nối TCP dài
+# hạn tới VIP đó, kube-proxy ghim kết nối vào ĐÚNG MỘT pod backend, và mọi replica
+# còn lại không bao giờ nhận traffic. Đo trực tiếp 30/07 khi product-catalog ở 11
+# replica (`kubectl top pod`):
+#
+#     xxhsp 353m · cw8nx 136m · pzcxg 11m · tám pod còn lại 1-2m
+#
+# HPA thấy CPU trung bình 48% nên ngừng scale, trong khi pod nóng là pod làm vỡ
+# deadline và sinh HTTP 500 trên /api/products/[id]. Đó là lý do nới maxReplicas
+# ở PR #649 không nâng được trần: replica thêm vào là dung lượng traffic không tới
+# được. product-reviews lệch y hệt (313m/254m/85m/4m).
+#
+# Đối chứng trong cùng cụm: frontend trải đều 123-138m, vì hop
+# `frontend-proxy -> frontend` đã đi qua `frontend-headless` từ trước.
+#
+# `clusterIP: None` khiến DNS trả về A-record của TẤT CẢ pod Ready. Kết hợp với
+# `round_robin` phía client (src/frontend/gateways/rpc/grpcChannel.ts) thì mỗi
+# request mới đi tới một pod khác. Thiếu một trong hai thì vô tác dụng.
+#
+# Service ClusterIP CŨ GIỮ NGUYÊN, không đụng tới: các service khác (checkout ->
+# cart/currency/..., product-reviews -> product-catalog) vẫn dùng chúng. Đây là
+# thêm một đường phân giải song song, không phải thay thế — nên rollback chỉ cần
+# trả *_ADDR trong values-prod.yaml về tên cũ, không cần đụng Service.
+#
+# selector `opentelemetry.io/name` khớp label chart đặt cho pod — cùng selector mà
+# gitops/infrastructure/frontend-headless-service.yaml đang dùng.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-catalog-headless
+  namespace: techx-tf3
+  labels:
+    mandate-19.techx.io/purpose: grpc-client-side-lb
+spec:
+  clusterIP: None
+  # Trả về pod CHƯA Ready cũng được coi là endpoint? KHÔNG — mặc định false, đúng
+  # ý muốn: round_robin chỉ được xoay vào pod đã sẵn sàng phục vụ.
+  publishNotReadyAddresses: false
+  selector:
+    opentelemetry.io/name: product-catalog
+  ports:
+    - name: grpc
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-reviews-headless
+  namespace: techx-tf3
+  labels:
+    mandate-19.techx.io/purpose: grpc-client-side-lb
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: false
+  selector:
+    opentelemetry.io/name: product-reviews
+  ports:
+    - name: grpc
+      protocol: TCP
+      port: 3551
+      targetPort: 3551
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: recommendation-headless
+  namespace: techx-tf3
+  labels:
+    mandate-19.techx.io/purpose: grpc-client-side-lb
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: false
+  selector:
+    opentelemetry.io/name: recommendation
+  ports:
+    - name: grpc
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart-headless
+  namespace: techx-tf3
+  labels:
+    mandate-19.techx.io/purpose: grpc-client-side-lb
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: false
+  selector:
+    opentelemetry.io/name: cart
+  ports:
+    - name: grpc
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: currency-headless
+  namespace: techx-tf3
+  labels:
+    mandate-19.techx.io/purpose: grpc-client-side-lb
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: false
+  selector:
+    opentelemetry.io/name: currency
+  ports:
+    - name: grpc
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ad-headless
+  namespace: techx-tf3
+  labels:
+    mandate-19.techx.io/purpose: grpc-client-side-lb
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: false
+  selector:
+    opentelemetry.io/name: ad
+  ports:
+    - name: grpc
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+# email là hop HTTP (không phải gRPC) của checkout, nhưng dính đúng một bệnh:
+# Go `http.Transport` giữ connection pool theo host, và pool tới một ClusterIP sẽ
+# ghim vào một pod email. Đó là lý do hàng đợi email dựng lên tới 15s (span client
+# `POST` p95 = 15000ms trong khi span server của email chỉ 391ms) — và là lý do
+# nâng replica email lên 2..8 ở PR #656 vẫn chưa đủ nếu traffic không tới được.
+#
+# Khác gRPC, Go phân giải DNS cho MỖI kết nối mới, nên chỉ cần trỏ EMAIL_ADDR vào
+# headless là pool tự trải ra nhiều pod — không cần sửa code checkout.
+apiVersion: v1
+kind: Service
+metadata:
+  name: email-headless
+  namespace: techx-tf3
+  labels:
+    mandate-19.techx.io/purpose: http-client-side-lb
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: false
+  selector:
+    opentelemetry.io/name: email
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080

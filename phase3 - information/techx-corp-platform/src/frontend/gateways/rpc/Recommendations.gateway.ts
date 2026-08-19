@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { CallOptions, ChannelCredentials, Metadata } from '@grpc/grpc-js';
+import { dnsTarget, loadBalancedChannelOptions } from './grpcChannel';
 import { ListRecommendationsResponse, RecommendationServiceClient } from '../../protos/demo';
 
 const { RECOMMENDATION_ADDR = '' } = process.env;
@@ -11,7 +12,11 @@ const { RECOMMENDATION_ADDR = '' } = process.env;
 // are non-critical page enrichment; the caller degrades to none on error/timeout.
 const RECO_DEADLINE_MS = Number(process.env.RECOMMENDATION_DEADLINE_MS) || 500;
 
-const client = new RecommendationServiceClient(RECOMMENDATION_ADDR, ChannelCredentials.createInsecure());
+const client = new RecommendationServiceClient(
+  dnsTarget(RECOMMENDATION_ADDR),
+  ChannelCredentials.createInsecure(),
+  loadBalancedChannelOptions
+);
 
 const RecommendationsGateway = () => ({
   listRecommendations(userId: string, productIds: string[]) {

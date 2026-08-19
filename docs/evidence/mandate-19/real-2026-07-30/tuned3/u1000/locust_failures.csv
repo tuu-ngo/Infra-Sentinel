@@ -1,0 +1,7 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,/api/product-ask-ai-assistant/[id],HTTPError('504 Server Error: Gateway Timeout for url: /api/product-ask-ai-assistant/[id]'),3,2026-07-30T09:44:12Z,2026-07-30T09:44:14Z
+GET,/api/product-reviews/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/product-reviews/[id]'),13,2026-07-30T09:44:11Z,2026-07-30T09:44:56Z
+GET,/api/products/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/products/[id]'),580,2026-07-30T09:43:58Z,2026-07-30T09:44:12Z
+POST,/api/product-ask-ai-assistant/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/product-ask-ai-assistant/[id]'),2,2026-07-30T09:44:12Z,2026-07-30T09:44:13Z
+GET,/api/product-reviews/[id],HTTPError('503 Server Error: Service Unavailable for url: /api/product-reviews/[id]'),136,2026-07-30T09:43:58Z,2026-07-30T09:44:39Z
+POST,/api/checkout,HTTPError('500 Server Error: Internal Server Error for url: /api/checkout'),13,2026-07-30T09:44:01Z,2026-07-30T09:44:09Z

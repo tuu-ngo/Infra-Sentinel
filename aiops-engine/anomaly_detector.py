@@ -42,13 +42,9 @@ class AnomalyDetector:
     def download_models_from_s3(self):
         """Tải các model Isolation Forest từ S3 về models/ nếu có."""
         try:
-            # Chỉ chạy khi có biến môi trường AWS
-            if not os.getenv("AWS_ACCESS_KEY_ID"):
-                logger.info("No AWS credentials found. Skipping S3 model download.")
-                return
-
-            s3 = boto3.client("s3")
-            logger.info(f"Listing models in S3 bucket: {self.s3_bucket}...")
+            region = os.getenv("AWS_REGION", os.getenv("AWS_DEFAULT_REGION", "ap-southeast-1"))
+            s3 = boto3.client("s3", region_name=region)
+            logger.info(f"Listing models in S3 bucket: {self.s3_bucket} (region: {region})...")
             response = s3.list_objects_v2(Bucket=self.s3_bucket, Prefix="current/")
             
             if "Contents" not in response:
@@ -134,38 +130,38 @@ class AnomalyDetector:
         end_time = time.time()
         start_time = end_time - 3600  # 1 giờ trước
         
-        
-        # PromQL
+        # Multi-label PromQL (EKS container_name / container / pod fallback)
         queries = {
-            "rps": f'sum(rate(traces_span_metrics_calls_total{{service_name="{service}"}}[5m]))',
+            "rps": f'(sum(rate(traces_span_metrics_calls_total{{service_name="{service}"}}[5m])) or vector(1.0))',
             "error_rate": f'(sum(rate(traces_span_metrics_calls_total{{service_name="{service}", status_code="STATUS_CODE_ERROR"}}[5m])) or vector(0))',
             "client_error_rate": f'vector(0)',
-            "latency_p90": f'(histogram_quantile(0.90, sum(rate(traces_span_metrics_duration_milliseconds_bucket{{service_name="{service}"}}[5m])) by (le)) or vector(0))',
-            "cpu_usage": f'sum(rate(container_cpu_usage_seconds_total{{container="{service}"}}[5m]))',
-            "memory_usage": f'sum(container_memory_working_set_bytes{{container="{service}"}}) / sum(container_spec_memory_limit_bytes{{container="{service}"}})',
+            "latency_p90": f'(histogram_quantile(0.90, sum(rate(traces_span_metrics_duration_milliseconds_bucket{{service_name="{service}"}}[5m])) by (le)) or vector(50.0))',
+            "cpu_usage": f'(sum(rate(container_cpu_usage_seconds_total{{container_name="{service}"}}[5m])) or sum(rate(container_cpu_usage_seconds_total{{container="{service}"}}[5m])) or sum(rate(container_cpu_usage_seconds_total{{pod=~"{service}-.*"}}[5m])) or vector(0.05))',
+            "memory_usage": f'((sum(container_memory_working_set_bytes{{container_name="{service}"}}) or sum(container_memory_working_set_bytes{{container="{service}"}}) or sum(container_memory_working_set_bytes{{pod=~"{service}-.*"}})) / (sum(container_spec_memory_limit_bytes{{container_name="{service}"}}) or sum(container_spec_memory_limit_bytes{{container="{service}"}}) or sum(container_spec_memory_limit_bytes{{pod=~"{service}-.*"}})) or vector(0.20))',
             "kafka_lag": f'(sum(kafka_consumer_records_lag{{service_name="{service}"}}) or vector(0))'
         }
-        
+
         data_dict = {}
         for name, q in queries.items():
             raw_res = self.query_prometheus_range(q, start_time, end_time, step="5m")
             series = self.parse_range_result(raw_res)
             if not series.empty:
                 data_dict[name] = series
-                
-        if len(data_dict) < 3:
+
+        if not data_dict:
             return pd.DataFrame()
-            
-        # Tự động bù đắp các metrics bị thiếu (như error_rate khi không có lỗi) bằng Series 0.0 cùng index
+
+        # Tự động bù đắp các metrics bị thiếu bằng Series mặc định cùng index
         sample_index = next(iter(data_dict.values())).index
         for name in queries.keys():
             if name not in data_dict:
-                data_dict[name] = pd.Series(0.0, index=sample_index)
-                
+                default_val = 0.05 if name == "cpu_usage" else (0.20 if name == "memory_usage" else 0.0)
+                data_dict[name] = pd.Series(default_val, index=sample_index)
+
         df = pd.DataFrame(data_dict)
         df = df.interpolate(method="time").ffill().bfill()
         df = df.reset_index().rename(columns={"index": "timestamp"})
-        
+
         # Tính toán features y hệt training script
         df["error_ratio"] = df["error_rate"] / (df["rps"] + 1e-5)
         df["client_error_ratio"] = df["client_error_rate"] / (df["rps"] + 1e-5)
@@ -176,15 +172,13 @@ class AnomalyDetector:
         df["memory_growth"] = df["memory_usage"] - df["memory_usage"].shift(6).fillna(0)
         df["kafka_lag_growth"] = df["kafka_lag"] - df["kafka_lag"].shift(1).fillna(0)
 
-
-        
         df["hour_of_day"] = df["timestamp"].dt.hour
         df["day_of_week"] = df["timestamp"].dt.weekday
         df["is_business_hours"] = ((df["hour_of_day"] >= 8) & (df["hour_of_day"] <= 18) & (df["day_of_week"] < 5)).astype(int)
-        
+
         df["rolling_median_rps_1h"] = df["rps"].rolling(window=12, min_periods=1).median()
         df["is_high_traffic_period"] = ((df["rps"] > 100) & (df["rps"] > 1.5 * df["rolling_median_rps_1h"])).astype(int)
-        
+
         df = df.fillna(0)
         return df
 
@@ -198,85 +192,61 @@ class AnomalyDetector:
             from config import SIMULATION_STATE
             scenario = SIMULATION_STATE["scenario"]
             remediated = SIMULATION_STATE["remediated"]
-            if scenario in ["inc1", "inc2", "inc3", "inc4", "inc5", "inc6", "inc7", "inc8", "incnew", "ml_proactive"] and not remediated:
-                # Nếu là ml_proactive, chỉ báo lỗi cho frontend để chạy chẩn đoán sớm
-                if scenario == "ml_proactive" and service != "frontend":
-                    return {
-                        "prediction": 1,
-                        "score": 0.15,
-                        "confidence": "HIGH",
-                        "fallback": False
-                    }
-                logger.info(f"[SIMULATION] Anomaly check for {service}: anomalous (score=-0.35) due to scenario {scenario}")
-                return {
-                    "prediction": -1,
-                    "score": -0.35,
-                    "confidence": "HIGH",
-                    "fallback": False
-                }
-            return {
-                "prediction": 1,
-                "score": 0.15,
-                "confidence": "HIGH",
-                "fallback": False
-            }
+            if scenario in ["inc1", "inc2", "inc3", "inc4", "inc5", "inc6", "inc7", "inc8", "incnew"] and not remediated:
+                logger.info(f"[SIMULATION] Anomaly check for {service}: anomalous due to scenario {scenario}")
+                return {"is_anomalous": True, "score": -0.5, "service": service, "details": f"Scenario {scenario} active"}
+            logger.info(f"[SIMULATION] Anomaly check for {service}: healthy")
+            return {"is_anomalous": False, "score": 0.5, "service": service, "details": "Healthy"}
 
-        # 2. Check xem có model đã nạp không
-        if service not in self.models:
-            logger.warning(f"No Isolation Forest model loaded for {service}. Falling back to Z-Score.")
-            # Tính Z-Score CPU để làm fallback
-            cpu_z = self.check_infra_z_score(f'sum(rate(container_cpu_usage_seconds_total{{container="{service}"}}[5m]))')
-            prediction = -1 if abs(cpu_z) >= 3.0 else 1
-            return {
-                "prediction": prediction,
-                "score": -float(abs(cpu_z)) / 3.0,
-                "confidence": "MEDIUM" if prediction == -1 else "HIGH",
-                "fallback": True
-            }
-
-        # 3. Trích xuất đặc trưng thời gian thực
         df_features = self.extract_features_realtime(service)
         if df_features.empty or len(df_features) < 1:
-            logger.warning(f"Insufficient telemetry data context for {service} features. Falling back to Z-Score.")
-            cpu_z = self.check_infra_z_score(f'sum(rate(container_cpu_usage_seconds_total{{container="{service}"}}[5m]))')
-            prediction = -1 if abs(cpu_z) >= 3.0 else 1
-            return {
-                "prediction": prediction,
-                "score": -float(abs(cpu_z)) / 3.0,
-                "confidence": "MEDIUM",
-                "fallback": True
-            }
+            logger.warning(f"No realtime feature data extracted for {service}. Fallback Z-score check.")
+            # Fallback Z-Score nếu thiếu dữ liệu ngữ cảnh
+            is_anomalous = self.check_infra_anomaly(service, [])
+            return {"is_anomalous": is_anomalous, "score": -0.1 if is_anomalous else 0.1, "service": service, "details": "Fallback Z-Score"}
 
-        # Lấy vector hàng cuối cùng (thời điểm hiện tại)
+        # 2. Sử dụng Isolation Forest
         feature_cols = [
             "rps", "cpu_usage", "memory_usage", "latency_p90", "error_rate", "client_error_rate", "kafka_lag",
             "error_ratio", "client_error_ratio", "latency_deviation", "rps_delta", "cpu_per_rps", "memory_growth", "kafka_lag_growth",
             "hour_of_day", "day_of_week", "is_business_hours", "is_high_traffic_period"
         ]
-        X_t = df_features[feature_cols].iloc[-1].values.reshape(1, -1)
         
-        # 4. Dự đoán bằng Isolation Forest
-        model = self.models[service]
-        prediction = int(model.predict(X_t)[0])  # 1 hoặc -1
-        score = float(model.decision_function(X_t)[0])  # Càng âm càng bất thường
+        # Bổ sung các cột thiếu nếu có
+        for col in feature_cols:
+            if col not in df_features.columns:
+                df_features[col] = 0.0
+                
+        X = df_features[feature_cols].iloc[[-1]]  # Lấy dòng mới nhất
 
-
-        
-        # Xác định mức độ tin cậy
-        if score < -0.3:
-            confidence = "HIGH"
-        elif score < -0.1:
-            confidence = "MEDIUM"
+        if service in self.models:
+            model = self.models[service]
+            pred = model.predict(X)[0] # -1: bất thường, 1: bình thường
+            score = model.decision_function(X)[0]
+            is_anomalous = bool(pred == -1)
+            logger.info(f"[IsolationForest] Service {service}: pred={pred}, score={score:.4f}, is_anomalous={is_anomalous}")
+            return {"is_anomalous": is_anomalous, "score": float(score), "service": service, "details": "IsolationForest ML"}
         else:
-            confidence = "borderline"
+            logger.warning(f"No Isolation Forest model loaded for service {service}. Falling back to Z-score.")
+            is_anomalous = self.check_infra_anomaly(service, [])
+            return {"is_anomalous": is_anomalous, "score": -0.1 if is_anomalous else 0.1, "service": service, "details": "Fallback Z-Score"}
+
+    def check_infra_anomaly(self, service: str, metrics: list) -> bool:
+        """
+        Kiểm tra bất thường về hạ tầng (CPU, Memory, Kafka lag).
+        """
+        if not metrics:
+            metrics = [
+                f'(sum(rate(container_cpu_usage_seconds_total{{container_name="{service}"}}[5m])) or sum(rate(container_cpu_usage_seconds_total{{container="{service}"}}[5m])) or sum(rate(container_cpu_usage_seconds_total{{pod=~"{service}-.*"}}[5m])))',
+                f'((sum(container_memory_working_set_bytes{{container_name="{service}"}}) or sum(container_memory_working_set_bytes{{container="{service}"}}) or sum(container_memory_working_set_bytes{{pod=~"{service}-.*"}})) / (sum(container_spec_memory_limit_bytes{{container_name="{service}"}}) or sum(container_spec_memory_limit_bytes{{container="{service}"}}) or sum(container_spec_memory_limit_bytes{{pod=~"{service}-.*"}})))'
+            ]
             
-        logger.info(f"Anomaly check for {service} - Predict: {prediction}, AnomalyScore: {score:.4f}, Confidence: {confidence}")
-        return {
-            "prediction": prediction,
-            "score": score,
-            "confidence": confidence,
-            "fallback": False
-        }
+        for metric in metrics:
+            z_score = self.check_infra_z_score(metric)
+            if z_score >= 3.0: # Vượt 3-sigma
+                logger.warning(f"Infra anomaly detected on {service}: {metric} (Z-Score = {z_score:.2f})")
+                return True
+        return False
 
     def check_slo_burn_rate(self) -> bool:
         """
@@ -408,38 +378,35 @@ class AnomalyDetector:
         manifest_loaded = False
         
         try:
-            if os.getenv("AWS_ACCESS_KEY_ID"):
-                s3 = boto3.client("s3")
-                manifest_local_path = os.path.join(self.models_dir, "active_manifest.json")
+            region = os.getenv("AWS_REGION", os.getenv("AWS_DEFAULT_REGION", "ap-southeast-1"))
+            s3 = boto3.client("s3", region_name=region)
+            manifest_local_path = os.path.join(self.models_dir, "active_manifest.json")
+
+            # 1. Thử tải active_manifest.json
+            logger.info("Attempting to download active_manifest.json from S3...")
+            try:
+                s3.download_file(self.s3_bucket, "active_manifest.json", manifest_local_path)
+                with open(manifest_local_path, "r", encoding="utf-8") as f:
+                    manifest = json.load(f)
                 
-                # 1. Thử tải active_manifest.json
-                logger.info("Attempting to download active_manifest.json from S3...")
-                try:
-                    s3.download_file(self.s3_bucket, "active_manifest.json", manifest_local_path)
-                    with open(manifest_local_path, "r", encoding="utf-8") as f:
-                        manifest = json.load(f)
-                    
-                    # Kiểm định manifest chất lượng
-                    if manifest.get("validation_passed", False):
-                        logger.info(f"Manifest loaded successfully: version={manifest.get('version')}, F1={manifest.get('f1_score_average')}")
-                        for service_name, s3_path in manifest.get("model_paths", {}).items():
-                            s3_key = s3_path.replace("models/", "")
-                            local_path = os.path.join(self.models_dir, f"{service_name}_iforest.joblib")
-                            logger.info(f"Downloading model for {service_name} from s3://{self.s3_bucket}/{s3_key}...")
-                            s3.download_file(self.s3_bucket, s3_key, local_path)
-                        manifest_loaded = True
-                    else:
-                        logger.warning("Manifest validation_passed is False. Model quality did not pass guardrail. Falling back to current/.")
-                except Exception as e:
-                    logger.warning(f"Could not download or parse manifest from S3: {e}. Falling back to current/.")
-                
-                # 2. Fallback nếu manifest thất bại
-                if not manifest_loaded:
-                    logger.info("Running fallback: downloading latest models from current/ folder on S3...")
-                    self.download_models_from_s3()
-            else:
-                logger.info("No AWS credentials found. Skipping S3 download (using local cache if available).")
-                
+                # Kiểm định manifest chất lượng
+                if manifest.get("validation_passed", False):
+                    logger.info(f"Manifest loaded successfully: version={manifest.get('version')}, F1={manifest.get('f1_score_average')}")
+                    for service_name, s3_path in manifest.get("model_paths", {}).items():
+                        s3_key = s3_path.replace("models/", "")
+                        local_path = os.path.join(self.models_dir, f"{service_name}_iforest.joblib")
+                        logger.info(f"Downloading model for {service_name} from s3://{self.s3_bucket}/{s3_key}...")
+                        s3.download_file(self.s3_bucket, s3_key, local_path)
+                    manifest_loaded = True
+                else:
+                    logger.warning("Manifest validation_passed is False. Model quality did not pass guardrail. Falling back to current/.")
+            except Exception as e:
+                logger.warning(f"Could not download or parse manifest from S3: {e}. Falling back to current/.")
+
+            # 2. Fallback nếu manifest thất bại
+            if not manifest_loaded:
+                logger.info("Running fallback: downloading latest models from current/ folder on S3...")
+                self.download_models_from_s3()
             # 3. Nạp tất cả file model joblib cục bộ vào RAM
             if os.path.exists(self.models_dir):
                 # Clear RAM cache trước khi nạp lại (dành cho hot reload)
@@ -493,7 +460,8 @@ class AnomalyDetector:
                 
         # Fallback Z-Score nếu không có model
         try:
-            cpu_z = self.check_infra_z_score(f'sum(rate(container_cpu_usage_seconds_total{{container="{service}"}}[5m]))')
+            prom_query = f'(sum(rate(container_cpu_usage_seconds_total{{container_name="{service}"}}[5m])) or sum(rate(container_cpu_usage_seconds_total{{container="{service}"}}[5m])) or sum(rate(container_cpu_usage_seconds_total{{pod=~"{service}-.*"}}[5m])) or vector(0.05))'
+            cpu_z = self.check_infra_z_score(prom_query)
             return abs(cpu_z) >= 3.0
         except Exception as e:
             logger.error(f"Failed to run Z-Score fallback for {service}: {e}")

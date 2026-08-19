@@ -1,0 +1,12 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,/api/cart,HTTPError('503 Server Error: Service Unavailable for url: /api/cart'),1,2026-07-30T07:36:00Z,2026-07-30T07:36:00Z
+GET,/api/product-reviews/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/product-reviews/[id]'),19,2026-07-30T07:32:35Z,2026-07-30T07:38:54Z
+GET,/api/products/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/products/[id]'),22910,2026-07-30T07:32:14Z,2026-07-30T07:39:09Z
+GET,/api/data/,HTTPError('503 Server Error: Service Unavailable for url: /api/data/'),4,2026-07-30T07:33:10Z,2026-07-30T07:37:47Z
+GET,/api/products/[id],HTTPError('503 Server Error: Service Unavailable for url: /api/products/[id]'),7,2026-07-30T07:33:07Z,2026-07-30T07:38:56Z
+POST,/api/checkout,HTTPError('504 Server Error: Gateway Timeout for url: /api/checkout'),117,2026-07-30T07:32:55Z,2026-07-30T07:39:08Z
+GET,/api/recommendations,HTTPError('503 Server Error: Service Unavailable for url: /api/recommendations'),1,2026-07-30T07:32:26Z,2026-07-30T07:32:26Z
+GET,/api/product-reviews/[id],HTTPError('503 Server Error: Service Unavailable for url: /api/product-reviews/[id]'),4932,2026-07-30T07:32:14Z,2026-07-30T07:39:09Z
+GET,/api/cart,HTTPError('503 Server Error: Service Unavailable for url: /api/cart'),3,2026-07-30T07:33:19Z,2026-07-30T07:37:27Z
+POST,/api/checkout,HTTPError('503 Server Error: Service Unavailable for url: /api/checkout'),1,2026-07-30T07:34:33Z,2026-07-30T07:34:33Z
+POST,/api/checkout,HTTPError('500 Server Error: Internal Server Error for url: /api/checkout'),3129,2026-07-30T07:32:14Z,2026-07-30T07:39:09Z

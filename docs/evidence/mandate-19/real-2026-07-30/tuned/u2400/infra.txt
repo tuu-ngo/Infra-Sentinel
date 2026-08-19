@@ -1,0 +1,69 @@
+### node_count
+9
+### node_set_sha256
+3d67a92aaa5e88a18ac3082d8a6616c7921baa5e4d889e823637b68a2232e730  -
+### nodes
+ip-10-0-1-122.ap-southeast-1.compute.internal    Ready   <none>   109m   v1.35.6-eks-8f14419   flash-sale-spot-arm64             c6g.large
+ip-10-0-18-201.ap-southeast-1.compute.internal   Ready   <none>   74m    v1.35.6-eks-8f14419   elastic-ondemand-fallback-arm64   c6g.large
+ip-10-0-24-177.ap-southeast-1.compute.internal   Ready   <none>   8d     v1.35.6-eks-8f14419                                     t3.large
+ip-10-0-26-153.ap-southeast-1.compute.internal   Ready   <none>   16d    v1.35.6-eks-8f14419                                     t3.large
+ip-10-0-31-174.ap-southeast-1.compute.internal   Ready   <none>   74m    v1.35.6-eks-8f14419   elastic-ondemand-fallback-arm64   c6g.large
+ip-10-0-38-176.ap-southeast-1.compute.internal   Ready   <none>   4h3m   v1.35.6-eks-8f14419   flash-sale-spot-arm64             m7gd.large
+ip-10-0-4-166.ap-southeast-1.compute.internal    Ready   <none>   15d    v1.35.6-eks-8f14419                                     t3.medium
+ip-10-0-43-83.ap-southeast-1.compute.internal    Ready   <none>   16d    v1.35.6-eks-8f14419                                     t3.large
+ip-10-0-8-134.ap-southeast-1.compute.internal    Ready   <none>   16d    v1.35.6-eks-8f14419                                     t3.large
+### hpa
+NAME                  REFERENCE                    TARGETS         MINPODS   MAXPODS   REPLICAS   AGE
+ad-hpa                Deployment/ad                cpu: 26%/65%    1         4         1          16d
+cart-hpa              Deployment/cart              cpu: 63%/65%    2         6         5          16d
+checkout-hpa          Rollout/checkout-rollout     cpu: 173%/65%   2         14        14         16d
+currency-hpa          Deployment/currency          cpu: 25%/65%    2         6         2          16d
+frontend-hpa          Deployment/frontend          cpu: 155%/65%   2         16        16         16d
+frontend-proxy-hpa    Deployment/frontend-proxy    cpu: 153%/65%   2         12        12         16d
+product-catalog-hpa   Deployment/product-catalog   cpu: 176%/65%   2         12        12         16d
+product-reviews-hpa   Deployment/product-reviews   cpu: 84%/75%    2         6         6          16d
+recommendation-hpa    Deployment/recommendation    cpu: 97%/65%    1         4         4          16d
+### top_nodes
+NAME                                             CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+ip-10-0-1-122.ap-southeast-1.compute.internal    1994m        103%     1781Mi          56%         
+ip-10-0-18-201.ap-southeast-1.compute.internal   1394m        72%      1300Mi          41%         
+ip-10-0-24-177.ap-southeast-1.compute.internal   1741m        90%      4909Mi          69%         
+ip-10-0-26-153.ap-southeast-1.compute.internal   944m         48%      3800Mi          53%         
+ip-10-0-31-174.ap-southeast-1.compute.internal   438m         22%      1061Mi          33%         
+ip-10-0-38-176.ap-southeast-1.compute.internal   1561m        80%      1573Mi          22%         
+ip-10-0-4-166.ap-southeast-1.compute.internal    26m          1%       952Mi           28%         
+ip-10-0-43-83.ap-southeast-1.compute.internal    300m         15%      2911Mi          41%         
+ip-10-0-8-134.ap-southeast-1.compute.internal    192m         9%       2878Mi          40%         
+### restarts_oom
+accounting-58499b5fb-gzq5v                       1/1   Running            4 (24m ago)     35h
+aiops-engine-64dccffb47-xpqqq                    0/1   CrashLoopBackOff   12 (43s ago)    39m
+checkout-rollout-57fd56d4-hndlj                  1/1   Running            1 (2m26s ago)   48m
+checkout-rollout-57fd56d4-j9t9x                  1/1   Running            1 (3m33s ago)   109m
+checkout-rollout-57fd56d4-s5wjv                  1/1   Running            1 (10m ago)     109m
+checkout-rollout-57fd56d4-z8n6c                  1/1   Running            1 (3m36s ago)   36m
+grafana-575c7b5476-zlggq                         4/4   Running            1 (38h ago)     44h
+### pending
+checkout-rollout-57fd56d4-66b2m    0/1   Pending   0     13m
+checkout-rollout-57fd56d4-hbsr2    0/1   Pending   0     22m
+checkout-rollout-57fd56d4-k5d2q    0/1   Pending   0     12m
+checkout-rollout-57fd56d4-ms5ql    0/1   Pending   0     21m
+checkout-rollout-57fd56d4-p87d8    0/1   Pending   0     21m
+checkout-rollout-57fd56d4-qgq9s    0/1   Pending   0     22m
+checkout-rollout-57fd56d4-zhk4w    0/1   Pending   0     12m
+frontend-68c64949f5-46pf9          0/1   Pending   0     38m
+frontend-68c64949f5-4rl5n          0/1   Pending   0     46m
+frontend-68c64949f5-5m55j          0/1   Pending   0     14m
+frontend-68c64949f5-h2lms          0/1   Pending   0     30m
+frontend-68c64949f5-nwwz4          0/1   Pending   0     14m
+frontend-68c64949f5-qrqqw          0/1   Pending   0     30m
+frontend-68c64949f5-r6hf7          0/1   Pending   0     14m
+frontend-68c64949f5-w5jgq          0/1   Pending   0     14m
+frontend-proxy-546b4cd898-8dgwm    0/1   Pending   0     22m
+frontend-proxy-546b4cd898-gjd6q    0/1   Pending   0     38m
+frontend-proxy-546b4cd898-gk8wg    0/1   Pending   0     30m
+frontend-proxy-546b4cd898-mbl26    0/1   Pending   0     22m
+product-catalog-7f948c89c5-f4fxf   0/1   Pending   0     14m
+product-catalog-7f948c89c5-ff26b   0/1   Pending   0     30m
+product-catalog-7f948c89c5-m22pl   0/1   Pending   0     22m
+product-catalog-7f948c89c5-t8w2p   0/1   Pending   0     22m
+product-catalog-7f948c89c5-vtvvw   0/1   Pending   0     14m

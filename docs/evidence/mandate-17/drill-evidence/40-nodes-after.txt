@@ -1,0 +1,24 @@
+﻿# EV-01 node -> AZ / capacity type
+# phase=after  utc=20260730-180505
+------------------------------------------------------------------------
+NAME                                             STATUS   ROLES    AGE   VERSION               INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                        KERNEL-VERSION                     CONTAINER-RUNTIME
+ip-10-0-24-177.ap-southeast-1.compute.internal   Ready    <none>   8d    v1.35.6-eks-8f14419   10.0.24.177   <none>        Amazon Linux 2023.12.20260611   6.12.90-120.164.amzn2023.x86_64    containerd://2.2.4+unknown
+ip-10-0-26-153.ap-southeast-1.compute.internal   Ready    <none>   17d   v1.35.6-eks-8f14419   10.0.26.153   <none>        Amazon Linux 2023.12.20260611   6.12.90-120.164.amzn2023.x86_64    containerd://2.2.4+unknown
+ip-10-0-34-80.ap-southeast-1.compute.internal    Ready    <none>   12h   v1.35.6-eks-8f14419   10.0.34.80    <none>        Amazon Linux 2023.12.20260710   6.12.94-123.180.amzn2023.aarch64   containerd://2.2.4+unknown
+ip-10-0-4-166.ap-southeast-1.compute.internal    Ready    <none>   16d   v1.35.6-eks-8f14419   10.0.4.166    <none>        Amazon Linux 2023.12.20260611   6.12.90-120.164.amzn2023.x86_64    containerd://2.2.4+unknown
+ip-10-0-43-83.ap-southeast-1.compute.internal    Ready    <none>   17d   v1.35.6-eks-8f14419   10.0.43.83    <none>        Amazon Linux 2023.12.20260611   6.12.90-120.164.amzn2023.x86_64    containerd://2.2.4+unknown
+ip-10-0-45-138.ap-southeast-1.compute.internal   Ready    <none>   8h    v1.35.6-eks-8f14419   10.0.45.138   <none>        Amazon Linux 2023.12.20260710   6.12.94-123.180.amzn2023.aarch64   containerd://2.2.4+unknown
+ip-10-0-5-127.ap-southeast-1.compute.internal    Ready    <none>   10h   v1.35.6-eks-8f14419   10.0.5.127    <none>        Amazon Linux 2023.12.20260710   6.12.94-123.180.amzn2023.aarch64   containerd://2.2.4+unknown
+ip-10-0-8-134.ap-southeast-1.compute.internal    Ready    <none>   17d   v1.35.6-eks-8f14419   10.0.8.134    <none>        Amazon Linux 2023.12.20260611   6.12.90-120.164.amzn2023.x86_64    containerd://2.2.4+unknown
+
+--- nhãn zone ---
+NODE                                             ZONE              CAPACITY    READY   UNSCHEDULABLE
+ip-10-0-24-177.ap-southeast-1.compute.internal   ap-southeast-1b   <none>      Ready   <none>
+ip-10-0-26-153.ap-southeast-1.compute.internal   ap-southeast-1b   <none>      Ready   <none>
+ip-10-0-34-80.ap-southeast-1.compute.internal    ap-southeast-1c   spot        Ready   <none>
+ip-10-0-4-166.ap-southeast-1.compute.internal    ap-southeast-1a   <none>      Ready   <none>
+ip-10-0-43-83.ap-southeast-1.compute.internal    ap-southeast-1c   <none>      Ready   <none>
+ip-10-0-45-138.ap-southeast-1.compute.internal   ap-southeast-1c   spot        Ready   <none>
+ip-10-0-5-127.ap-southeast-1.compute.internal    ap-southeast-1a   on-demand   Ready   <none>
+ip-10-0-8-134.ap-southeast-1.compute.internal    ap-southeast-1a   <none>      Ready   <none>
+

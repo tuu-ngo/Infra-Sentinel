@@ -5,7 +5,10 @@
   "editable": true,
   "graphTooltip": 1,
   "refresh": "30s",
-  "time": { "from": "now-1h", "to": "now" },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
   "timepicker": {},
   "fiscalYearStartMonth": 0,
   "links": [],
@@ -15,16 +18,35 @@
       "type": "row",
       "title": "🎯 SLO Status — rolling 24h",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
     },
     {
       "id": 10,
       "title": "Browse — Success Rate (SLO ≥ 99.5%)",
       "type": "gauge",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 1 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "showThresholdLabels": true,
         "showThresholdMarkers": true
       },
@@ -37,10 +59,22 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "orange", "value": 0.990 },
-              { "color": "yellow", "value": 0.993 },
-              { "color": "green", "value": 0.995 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.99
+              },
+              {
+                "color": "yellow",
+                "value": 0.993
+              },
+              {
+                "color": "green",
+                "value": 0.995
+              }
             ]
           },
           "mappings": []
@@ -49,7 +83,10 @@
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "1 - (\n  (sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /|HEAD /|GET /product/\\\\[productId\\\\]|GET /api/products/index|GET /api/products/\\\\[productId\\\\]/index|GET /api/products/\\\\{productId\\\\}|GET /api/recommendations|GET /api/product-reviews/\\\\[productId\\\\]/index|GET /api/product-reviews-avg-score/\\\\[productId\\\\]/index\", status_code=\"STATUS_CODE_ERROR\"}[24h])) or vector(0))\n  /\n  sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /|HEAD /|GET /product/\\\\[productId\\\\]|GET /api/products/index|GET /api/products/\\\\[productId\\\\]/index|GET /api/products/\\\\{productId\\\\}|GET /api/recommendations|GET /api/product-reviews/\\\\[productId\\\\]/index|GET /api/product-reviews-avg-score/\\\\[productId\\\\]/index\"}[24h]))\n)",
           "legendFormat": "Browse Success Rate",
@@ -62,10 +99,24 @@
       "id": 11,
       "title": "Browse — p95 Latency (SLO < 1000ms)",
       "type": "gauge",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 1 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "showThresholdLabels": true,
         "showThresholdMarkers": true
       },
@@ -78,10 +129,22 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 800 },
-              { "color": "orange", "value": 1000 },
-              { "color": "red", "value": 1200 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 800
+              },
+              {
+                "color": "orange",
+                "value": 1000
+              },
+              {
+                "color": "red",
+                "value": 1200
+              }
             ]
           },
           "mappings": []
@@ -90,7 +153,10 @@
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "histogram_quantile(0.95,\n  sum(rate(traces_span_metrics_duration_milliseconds_bucket{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /|HEAD /|GET /product/\\\\[productId\\\\]|GET /api/products/index|GET /api/products/\\\\[productId\\\\]/index|GET /api/products/\\\\{productId\\\\}|GET /api/recommendations|GET /api/product-reviews/\\\\[productId\\\\]/index|GET /api/product-reviews-avg-score/\\\\[productId\\\\]/index\"}[5m]))\n  by (le)\n)",
           "legendFormat": "p95 latency",
@@ -103,10 +169,24 @@
       "id": 12,
       "title": "Cart — Success Rate (SLO ≥ 99.5%)",
       "type": "gauge",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 1 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "showThresholdLabels": true,
         "showThresholdMarkers": true
       },
@@ -119,10 +199,22 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "orange", "value": 0.990 },
-              { "color": "yellow", "value": 0.993 },
-              { "color": "green", "value": 0.995 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.99
+              },
+              {
+                "color": "yellow",
+                "value": 0.993
+              },
+              {
+                "color": "green",
+                "value": 0.995
+              }
             ]
           },
           "mappings": []
@@ -131,7 +223,10 @@
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "1 - (\n  (sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /api/cart|POST /api/cart\", status_code=\"STATUS_CODE_ERROR\"}[24h])) or vector(0))\n  /\n  sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /api/cart|POST /api/cart\"}[24h]))\n)",
           "legendFormat": "Cart Success Rate",
@@ -144,10 +239,24 @@
       "id": 13,
       "title": "Checkout — Success Rate (SLO ≥ 99.0%)",
       "type": "gauge",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 1 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "showThresholdLabels": true,
         "showThresholdMarkers": true
       },
@@ -160,10 +269,22 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "orange", "value": 0.985 },
-              { "color": "yellow", "value": 0.990 },
-              { "color": "green", "value": 0.995 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.985
+              },
+              {
+                "color": "yellow",
+                "value": 0.99
+              },
+              {
+                "color": "green",
+                "value": 0.995
+              }
             ]
           },
           "mappings": []
@@ -172,42 +293,80 @@
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
-          "expr": "1 - (\n  (sum(rate(traces_span_metrics_calls_total{service_name=\"checkout\", span_name=\"oteldemo.CheckoutService/PlaceOrder\", status_code=\"STATUS_CODE_ERROR\"}[24h])) or vector(0))\n  /\n  sum(rate(traces_span_metrics_calls_total{service_name=\"checkout\", span_name=\"oteldemo.CheckoutService/PlaceOrder\"}[24h]))\n)",
+          "expr": "1 - (\n  (sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=\"POST /api/checkout\", status_code=\"STATUS_CODE_ERROR\"}[24h])) or vector(0))\n  /\n  sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=\"POST /api/checkout\"}[24h]))\n)",
           "legendFormat": "Checkout Success Rate",
           "instant": true,
           "refId": "A"
         }
-      ]
+      ],
+      "description": "— đo tại BIÊN (frontend POST /api/checkout). Span nội bộ của service checkout không thấy request bị timeout ở tầng trên: ở 2400 user, 8.875/8.877 đơn trả 504 mà SLI cũ vẫn báo 100%."
     },
     {
       "id": 2,
       "type": "row",
       "title": "📈 Browse — Trend & Latency (rolling 1h)",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 }
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      }
     },
     {
       "id": 20,
       "title": "Browse — Request Rate (req/s)",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 10 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 10
+      },
       "options": {
-        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "gradientMode": "none", "showPoints": "never", "spanNulls": false }
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "showPoints": "never",
+            "spanNulls": false
+          }
         },
         "overrides": []
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /|HEAD /|GET /product/\\\\[productId\\\\]|GET /api/products/index|GET /api/products/\\\\[productId\\\\]/index|GET /api/products/\\\\{productId\\\\}|GET /api/recommendations|GET /api/product-reviews/\\\\[productId\\\\]/index|GET /api/product-reviews-avg-score/\\\\[productId\\\\]/index\"}[$__rate_interval]))",
           "legendFormat": "Total req/s",
@@ -215,7 +374,10 @@
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /|HEAD /|GET /product/\\\\[productId\\\\]|GET /api/products/index|GET /api/products/\\\\[productId\\\\]/index|GET /api/products/\\\\{productId\\\\}|GET /api/recommendations|GET /api/product-reviews/\\\\[productId\\\\]/index|GET /api/product-reviews-avg-score/\\\\[productId\\\\]/index\", status_code=\"STATUS_CODE_ERROR\"}[$__rate_interval]))",
           "legendFormat": "Error req/s",
@@ -228,37 +390,94 @@
       "id": 21,
       "title": "Browse — Success Rate % (trend)",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 10 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 10
+      },
       "options": {
-        "legend": { "calcs": ["mean", "min"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "calcs": [
+            "mean",
+            "min"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
           "min": 0.98,
           "max": 1,
-          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          },
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 0 }]
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 0
+              }
+            ]
           }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "SLO target" },
+            "matcher": {
+              "id": "byName",
+              "options": "SLO target"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } },
-              { "id": "custom.lineStyle", "value": { "dash": [10, 10], "fill": "dash" } },
-              { "id": "custom.lineWidth", "value": 1 }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              }
             ]
           }
         ]
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "1 - ((sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /|HEAD /|GET /product/\\\\[productId\\\\]|GET /api/products/index|GET /api/products/\\\\[productId\\\\]/index|GET /api/products/\\\\{productId\\\\}|GET /api/recommendations|GET /api/product-reviews/\\\\[productId\\\\]/index|GET /api/product-reviews-avg-score/\\\\[productId\\\\]/index\", status_code=\"STATUS_CODE_ERROR\"}[$__rate_interval])) or vector(0)) / sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /|HEAD /|GET /product/\\\\[productId\\\\]|GET /api/products/index|GET /api/products/\\\\[productId\\\\]/index|GET /api/products/\\\\{productId\\\\}|GET /api/recommendations|GET /api/product-reviews/\\\\[productId\\\\]/index|GET /api/product-reviews-avg-score/\\\\[productId\\\\]/index\"}[$__rate_interval])))",
           "legendFormat": "Browse success rate",
@@ -266,7 +485,10 @@
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "vector(0.995)",
           "legendFormat": "SLO target",
@@ -279,31 +501,79 @@
       "id": 22,
       "title": "Browse — p50 / p95 / p99 Latency",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 10 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 10
+      },
       "options": {
-        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "fieldConfig": {
         "defaults": {
           "unit": "ms",
-          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 5, "showPoints": "never" }
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 5,
+            "showPoints": "never"
+          }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "SLO target (1000ms)" },
+            "matcher": {
+              "id": "byName",
+              "options": "SLO target (1000ms)"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } },
-              { "id": "custom.lineStyle", "value": { "dash": [10, 10], "fill": "dash" } },
-              { "id": "custom.lineWidth", "value": 1 }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              }
             ]
           }
         ]
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "histogram_quantile(0.50, sum(rate(traces_span_metrics_duration_milliseconds_bucket{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /|HEAD /|GET /product/\\\\[productId\\\\]|GET /api/products/index|GET /api/products/\\\\[productId\\\\]/index|GET /api/products/\\\\{productId\\\\}|GET /api/recommendations|GET /api/product-reviews/\\\\[productId\\\\]/index|GET /api/product-reviews-avg-score/\\\\[productId\\\\]/index\"}[$__rate_interval])) by (le))",
           "legendFormat": "p50",
@@ -311,7 +581,10 @@
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "histogram_quantile(0.95, sum(rate(traces_span_metrics_duration_milliseconds_bucket{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /|HEAD /|GET /product/\\\\[productId\\\\]|GET /api/products/index|GET /api/products/\\\\[productId\\\\]/index|GET /api/products/\\\\{productId\\\\}|GET /api/recommendations|GET /api/product-reviews/\\\\[productId\\\\]/index|GET /api/product-reviews-avg-score/\\\\[productId\\\\]/index\"}[$__rate_interval])) by (le))",
           "legendFormat": "p95",
@@ -319,7 +592,10 @@
           "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "histogram_quantile(0.99, sum(rate(traces_span_metrics_duration_milliseconds_bucket{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /|HEAD /|GET /product/\\\\[productId\\\\]|GET /api/products/index|GET /api/products/\\\\[productId\\\\]/index|GET /api/products/\\\\{productId\\\\}|GET /api/recommendations|GET /api/product-reviews/\\\\[productId\\\\]/index|GET /api/product-reviews-avg-score/\\\\[productId\\\\]/index\"}[$__rate_interval])) by (le))",
           "legendFormat": "p99",
@@ -327,7 +603,10 @@
           "refId": "C"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "vector(1000)",
           "legendFormat": "SLO target (1000ms)",
@@ -341,28 +620,60 @@
       "type": "row",
       "title": "🛒 Cart — Trend",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 }
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      }
     },
     {
       "id": 30,
       "title": "Cart — Request Rate (req/s)",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 19 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 19
+      },
       "options": {
-        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
         },
         "overrides": []
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /api/cart|POST /api/cart\"}[$__rate_interval]))",
           "legendFormat": "Total req/s",
@@ -370,7 +681,10 @@
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /api/cart|POST /api/cart\", status_code=\"STATUS_CODE_ERROR\"}[$__rate_interval]))",
           "legendFormat": "Error req/s",
@@ -383,33 +697,81 @@
       "id": 31,
       "title": "Cart — Success Rate % (trend)",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 19 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 19
+      },
       "options": {
-        "legend": { "calcs": ["mean", "min"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "calcs": [
+            "mean",
+            "min"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
           "min": 0.98,
           "max": 1,
-          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "SLO target" },
+            "matcher": {
+              "id": "byName",
+              "options": "SLO target"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } },
-              { "id": "custom.lineStyle", "value": { "dash": [10, 10], "fill": "dash" } },
-              { "id": "custom.lineWidth", "value": 1 }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              }
             ]
           }
         ]
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "1 - ((sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /api/cart|POST /api/cart\", status_code=\"STATUS_CODE_ERROR\"}[$__rate_interval])) or vector(0)) / sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /api/cart|POST /api/cart\"}[$__rate_interval])))",
           "legendFormat": "Cart success rate",
@@ -417,7 +779,10 @@
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "vector(0.995)",
           "legendFormat": "SLO target",
@@ -430,22 +795,49 @@
       "id": 32,
       "title": "Cart — p50 / p95 / p99 Latency",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 19 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 19
+      },
       "options": {
-        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "fieldConfig": {
         "defaults": {
           "unit": "ms",
-          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 5, "showPoints": "never" }
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 5,
+            "showPoints": "never"
+          }
         },
         "overrides": []
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "histogram_quantile(0.50, sum(rate(traces_span_metrics_duration_milliseconds_bucket{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /api/cart|POST /api/cart\"}[$__rate_interval])) by (le))",
           "legendFormat": "p50",
@@ -453,7 +845,10 @@
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "histogram_quantile(0.95, sum(rate(traces_span_metrics_duration_milliseconds_bucket{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /api/cart|POST /api/cart\"}[$__rate_interval])) by (le))",
           "legendFormat": "p95",
@@ -461,7 +856,10 @@
           "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "histogram_quantile(0.99, sum(rate(traces_span_metrics_duration_milliseconds_bucket{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /api/cart|POST /api/cart\"}[$__rate_interval])) by (le))",
           "legendFormat": "p99",
@@ -475,28 +873,60 @@
       "type": "row",
       "title": "💳 Checkout — Trend",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 27 }
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      }
     },
     {
       "id": 40,
-      "title": "Checkout — Request Rate (req/s)",
+      "title": "Checkout — Request Rate (req/s) — nội bộ service",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 28 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 28
+      },
       "options": {
-        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
         },
         "overrides": []
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "sum(rate(traces_span_metrics_calls_total{service_name=\"checkout\", span_name=\"oteldemo.CheckoutService/PlaceOrder\"}[$__rate_interval]))",
           "legendFormat": "Total req/s",
@@ -504,91 +934,195 @@
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "sum(rate(traces_span_metrics_calls_total{service_name=\"checkout\", span_name=\"oteldemo.CheckoutService/PlaceOrder\", status_code=\"STATUS_CODE_ERROR\"}[$__rate_interval]))",
           "legendFormat": "Error req/s",
           "range": true,
           "refId": "B"
         }
-      ]
+      ],
+      "description": "Đo trên span nội bộ oteldemo.CheckoutService/PlaceOrder — dùng để CHẨN ĐOÁN service, KHÔNG phải SLI. SLO checkout đo ở biên (panel Success Rate)."
     },
     {
       "id": 41,
       "title": "Checkout — Success Rate % (trend)",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 28 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 28
+      },
       "options": {
-        "legend": { "calcs": ["mean", "min"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "calcs": [
+            "mean",
+            "min"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
           "min": 0.97,
           "max": 1,
-          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "SLO target" },
+            "matcher": {
+              "id": "byName",
+              "options": "SLO target"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } },
-              { "id": "custom.lineStyle", "value": { "dash": [10, 10], "fill": "dash" } },
-              { "id": "custom.lineWidth", "value": 1 }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              }
             ]
           }
         ]
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
-          "expr": "1 - ((sum(rate(traces_span_metrics_calls_total{service_name=\"checkout\", span_name=\"oteldemo.CheckoutService/PlaceOrder\", status_code=\"STATUS_CODE_ERROR\"}[$__rate_interval])) or vector(0)) / sum(rate(traces_span_metrics_calls_total{service_name=\"checkout\", span_name=\"oteldemo.CheckoutService/PlaceOrder\"}[$__rate_interval])))",
+          "expr": "1 - ((sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=\"POST /api/checkout\", status_code=\"STATUS_CODE_ERROR\"}[$__rate_interval])) or vector(0)) / sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=\"POST /api/checkout\"}[$__rate_interval])))",
           "legendFormat": "Checkout success rate",
           "range": true,
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "vector(0.990)",
           "legendFormat": "SLO target",
           "range": true,
           "refId": "B"
         }
-      ]
+      ],
+      "description": "— đo tại BIÊN (frontend POST /api/checkout). Span nội bộ của service checkout không thấy request bị timeout ở tầng trên: ở 2400 user, 8.875/8.877 đơn trả 504 mà SLI cũ vẫn báo 100%."
     },
     {
       "id": 42,
-      "title": "Checkout — p50 / p95 / p99 Latency",
+      "title": "Checkout — p50 / p95 / p99 Latency — nội bộ service",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 28 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 28
+      },
       "options": {
-        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "fieldConfig": {
         "defaults": {
           "unit": "ms",
-          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 5, "showPoints": "never" }
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 5,
+            "showPoints": "never"
+          }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Mandate-16 p99 target (300ms)" },
+            "matcher": {
+              "id": "byName",
+              "options": "Mandate-16 p99 target (300ms)"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } },
-              { "id": "custom.lineStyle", "value": { "dash": [10, 10], "fill": "dash" } },
-              { "id": "custom.lineWidth", "value": 1 }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              }
             ]
           }
         ]
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "histogram_quantile(0.50, sum(rate(traces_span_metrics_duration_milliseconds_bucket{service_name=\"checkout\", span_name=\"oteldemo.CheckoutService/PlaceOrder\"}[$__rate_interval])) by (le))",
           "legendFormat": "p50",
@@ -596,7 +1130,10 @@
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "histogram_quantile(0.95, sum(rate(traces_span_metrics_duration_milliseconds_bucket{service_name=\"checkout\", span_name=\"oteldemo.CheckoutService/PlaceOrder\"}[$__rate_interval])) by (le))",
           "legendFormat": "p95",
@@ -604,7 +1141,10 @@
           "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "histogram_quantile(0.99, sum(rate(traces_span_metrics_duration_milliseconds_bucket{service_name=\"checkout\", span_name=\"oteldemo.CheckoutService/PlaceOrder\"}[$__rate_interval])) by (le))",
           "legendFormat": "p99",
@@ -612,30 +1152,53 @@
           "refId": "C"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "vector(300)",
           "legendFormat": "Mandate-16 p99 target (300ms)",
           "range": true,
           "refId": "D"
         }
-      ]
+      ],
+      "description": "Đo trên span nội bộ oteldemo.CheckoutService/PlaceOrder — dùng để CHẨN ĐOÁN service, KHÔNG phải SLI. SLO checkout đo ở biên (panel Success Rate)."
     },
     {
       "id": 5,
       "type": "row",
       "title": "⚡ Error Budget Burn",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 36 }
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      }
     },
     {
       "id": 50,
       "title": "Browse — Error Budget Remaining (rolling 24h)",
       "type": "gauge",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 37 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 37
+      },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
@@ -648,10 +1211,22 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "orange", "value": 0.25 },
-              { "color": "yellow", "value": 0.50 },
-              { "color": "green", "value": 0.75 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.25
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "green",
+                "value": 0.75
+              }
             ]
           }
         },
@@ -659,7 +1234,10 @@
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "1 - (\n  ((sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /|HEAD /|GET /product/\\\\[productId\\\\]|GET /api/products/index|GET /api/products/\\\\[productId\\\\]/index|GET /api/products/\\\\{productId\\\\}|GET /api/recommendations|GET /api/product-reviews/\\\\[productId\\\\]/index|GET /api/product-reviews-avg-score/\\\\[productId\\\\]/index\", status_code=\"STATUS_CODE_ERROR\"}[24h])) or vector(0)) / sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /|HEAD /|GET /product/\\\\[productId\\\\]|GET /api/products/index|GET /api/products/\\\\[productId\\\\]/index|GET /api/products/\\\\{productId\\\\}|GET /api/recommendations|GET /api/product-reviews/\\\\[productId\\\\]/index|GET /api/product-reviews-avg-score/\\\\[productId\\\\]/index\"}[24h])))\n  / (1 - 0.995)\n)",
           "legendFormat": "Budget remaining",
@@ -672,10 +1250,24 @@
       "id": 51,
       "title": "Cart — Error Budget Remaining (rolling 24h)",
       "type": "gauge",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 37 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 8,
+        "y": 37
+      },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
@@ -688,10 +1280,22 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "orange", "value": 0.25 },
-              { "color": "yellow", "value": 0.50 },
-              { "color": "green", "value": 0.75 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.25
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "green",
+                "value": 0.75
+              }
             ]
           }
         },
@@ -699,7 +1303,10 @@
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "1 - (\n  ((sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /api/cart|POST /api/cart\", status_code=\"STATUS_CODE_ERROR\"}[24h])) or vector(0)) / sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=~\"GET /api/cart|POST /api/cart\"}[24h])))\n  / (1 - 0.995)\n)",
           "legendFormat": "Budget remaining",
@@ -712,10 +1319,24 @@
       "id": 52,
       "title": "Checkout — Error Budget Remaining (rolling 24h)",
       "type": "gauge",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 37 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 37
+      },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
@@ -728,10 +1349,22 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "orange", "value": 0.25 },
-              { "color": "yellow", "value": 0.50 },
-              { "color": "green", "value": 0.75 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.25
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "green",
+                "value": 0.75
+              }
             ]
           }
         },
@@ -739,43 +1372,79 @@
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
-          "expr": "1 - (\n  ((sum(rate(traces_span_metrics_calls_total{service_name=\"checkout\", span_name=\"oteldemo.CheckoutService/PlaceOrder\", status_code=\"STATUS_CODE_ERROR\"}[24h])) or vector(0)) / sum(rate(traces_span_metrics_calls_total{service_name=\"checkout\", span_name=\"oteldemo.CheckoutService/PlaceOrder\"}[24h])))\n  / (1 - 0.990)\n)",
+          "expr": "1 - (\n  ((sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=\"POST /api/checkout\", status_code=\"STATUS_CODE_ERROR\"}[24h])) or vector(0)) / sum(rate(traces_span_metrics_calls_total{service_name=\"frontend\", span_kind=\"SPAN_KIND_SERVER\", span_name=\"POST /api/checkout\"}[24h])))\n  / (1 - 0.990)\n)",
           "legendFormat": "Budget remaining",
           "instant": true,
           "refId": "A"
         }
-      ]
+      ],
+      "description": "— đo tại BIÊN (frontend POST /api/checkout). Span nội bộ của service checkout không thấy request bị timeout ở tầng trên: ở 2400 user, 8.875/8.877 đơn trả 504 mà SLI cũ vẫn báo 100%."
     },
     {
       "id": 53,
       "type": "row",
       "title": "📦 Scale Evidence — HPA + Karpenter (co lên rồi co xuống)",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 43 }
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 43
+      }
     },
     {
       "id": 54,
       "title": "Pod count — hot-path services (HPA scale)",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 44 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 0,
+        "y": 44
+      },
       "options": {
-        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
           "min": 0,
-          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
         },
         "overrides": []
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "count(up{job=\"kubernetes-pods\", namespace=\"techx-tf3\", app_kubernetes_io_name=~\"checkout|frontend|frontend-proxy|product-catalog|cart|currency|recommendation|product-reviews|ad\"}) by (app_kubernetes_io_name)",
           "legendFormat": "{{app_kubernetes_io_name}}",
@@ -788,23 +1457,50 @@
       "id": 55,
       "title": "Node count (Karpenter burst)",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 44 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "webstore-metrics"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 44
+      },
       "options": {
-        "legend": { "calcs": ["mean", "max"], "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "single", "sort": "none" }
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
       },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
           "min": 0,
-          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
         },
         "overrides": []
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "webstore-metrics" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "webstore-metrics"
+          },
           "editorMode": "code",
           "expr": "count(up{job=\"kubernetes-nodes\"})",
           "legendFormat": "Node count",
@@ -816,5 +1512,9 @@
   ],
   "schemaVersion": 39,
   "version": 1,
-  "tags": ["slo", "tf3", "techx"]
+  "tags": [
+    "slo",
+    "tf3",
+    "techx"
+  ]
 }

@@ -1,0 +1,8 @@
+### probe qua CloudFront — 2026-07-30T07:52:51Z
+# Kỳ vọng: hai route browse có 429 + header x-techx-load-shed;
+# ba route protected KHÔNG có 429 nào.
+GET / [browse(shedable)]                       codes= 200 200 200 429 429 429 200 429  load-shed-header=yes
+GET /api/products [browse(shedable)]           codes= 429 429 200 200 200 429 429 429  load-shed-header=yes
+GET /api/products/OLJCESPC7Z [product_detail(protected)] codes= 200 200 200 200 200 200 200 200  load-shed-header=no
+GET /api/cart [cart(protected)]                codes= 200 200 200 200 200 200 200 200  load-shed-header=no
+POST /api/checkout [checkout(protected)]       codes= 500 500 500 500 500 500 500 500  load-shed-header=no

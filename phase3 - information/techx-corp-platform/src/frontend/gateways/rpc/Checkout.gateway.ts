@@ -2,11 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ChannelCredentials } from '@grpc/grpc-js';
+import { dnsTarget, loadBalancedChannelOptions } from './grpcChannel';
 import { CheckoutServiceClient, PlaceOrderRequest, PlaceOrderResponse } from '../../protos/demo';
 
 const { CHECKOUT_ADDR = '' } = process.env;
 
-const client = new CheckoutServiceClient(CHECKOUT_ADDR, ChannelCredentials.createInsecure());
+const client = new CheckoutServiceClient(
+  dnsTarget(CHECKOUT_ADDR),
+  ChannelCredentials.createInsecure(),
+  loadBalancedChannelOptions
+);
 
 const CheckoutGateway = () => ({
   placeOrder(order: PlaceOrderRequest) {

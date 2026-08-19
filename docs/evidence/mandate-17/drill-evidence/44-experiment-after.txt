@@ -1,0 +1,61 @@
+﻿# EV-04 trang thai experiment FIS
+# phase=after  utc=20260730-180505
+------------------------------------------------------------------------
+{
+    "experiment": {
+        "id": "EXPJazdMDpevoHeDJr",
+        "arn": "arn:aws:fis:ap-southeast-1:197826770971:experiment/EXPJazdMDpevoHeDJr",
+        "experimentTemplateId": "EXT9JSZivevPf3Hoe",
+        "roleArn": "arn:aws:iam::197826770971:role/tf3-fis-experiment",
+        "state": {
+            "status": "completed",
+            "reason": "Experiment completed."
+        },
+        "targets": {
+            "target-az-subnet": {
+                "resourceType": "aws:ec2:subnet",
+                "resourceArns": [
+                    "arn:aws:ec2:ap-southeast-1:197826770971:subnet/subnet-045de0d768b5c49f1"
+                ],
+                "selectionMode": "ALL"
+            }
+        },
+        "actions": {
+            "disrupt-az-connectivity": {
+                "actionId": "aws:network:disrupt-connectivity",
+                "description": "Blackhole traffic in and out of the target AZ subnet.",
+                "parameters": {
+                    "duration": "PT5M",
+                    "scope": "availability-zone"
+                },
+                "targets": {
+                    "Subnets": "target-az-subnet"
+                },
+                "state": {
+                    "status": "completed",
+                    "reason": "Action was completed."
+                },
+                "startTime": "2026-07-31T00:59:47.956000+07:00",
+                "endTime": "2026-07-31T01:04:48.611000+07:00"
+            }
+        },
+        "stopConditions": [
+            {
+                "source": "aws:cloudwatch:alarm",
+                "value": "arn:aws:cloudwatch:ap-southeast-1:197826770971:alarm:tf3-fis-stop-storefront-5xx"
+            }
+        ],
+        "creationTime": "2026-07-31T00:59:33.837000+07:00",
+        "startTime": "2026-07-31T00:59:34.133000+07:00",
+        "endTime": "2026-07-31T01:04:49.092000+07:00",
+        "tags": {
+            "Name": "m17-az1b-final"
+        },
+        "experimentOptions": {
+            "accountTargeting": "single-account",
+            "emptyTargetResolutionMode": "fail",
+            "actionsMode": "run-all"
+        }
+    }
+}
+

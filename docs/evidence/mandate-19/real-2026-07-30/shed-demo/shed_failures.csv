@@ -1,0 +1,9 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,/api/checkout [protected],HTTPError('503 Server Error: Service Unavailable for url: /api/checkout [protected]'),1,2026-07-30T07:53:46Z,2026-07-30T07:53:46Z
+GET,/ [shed_browse],HTTPError('429 Client Error: Too Many Requests for url: / [shed_browse]'),20769,2026-07-30T07:52:18Z,2026-07-30T07:59:08Z
+POST,/api/cart [protected],HTTPError('503 Server Error: Service Unavailable for url: /api/cart [protected]'),1,2026-07-30T07:58:16Z,2026-07-30T07:58:16Z
+GET,/api/products [shed_browse],HTTPError('429 Client Error: Too Many Requests for url: /api/products [shed_browse]'),83495,2026-07-30T07:52:18Z,2026-07-30T07:59:08Z
+GET,/api/products/:id [protected],HTTPError('500 Server Error: Internal Server Error for url: /api/products/:id [protected]'),5,2026-07-30T07:52:14Z,2026-07-30T07:52:16Z
+GET,/api/products [shed_browse],HTTPError('503 Server Error: Service Unavailable for url: /api/products [shed_browse]'),39,2026-07-30T07:52:28Z,2026-07-30T07:58:45Z
+GET,/ [shed_browse],HTTPError('503 Server Error: Service Unavailable for url: / [shed_browse]'),11,2026-07-30T07:54:44Z,2026-07-30T07:58:02Z
+GET,/api/products [shed_browse],HTTPError('500 Server Error: Internal Server Error for url: /api/products [shed_browse]'),73,2026-07-30T07:52:13Z,2026-07-30T07:52:18Z

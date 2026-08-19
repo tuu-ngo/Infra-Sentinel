@@ -4,6 +4,7 @@ import logging
 import asyncio
 import json
 import subprocess
+from typing import Dict, List
 from fastapi import FastAPI, Request, BackgroundTasks
 from pydantic import BaseModel
 from anomaly_detector import AnomalyDetector
@@ -69,10 +70,6 @@ def enrich_culprit_with_upstream_check(trigger_service: str, lookback_minutes: i
       5. Kafka Consumer Lag (Nghẽn hàng đợi)
       + Trọng số độ sâu hạ nguồn (Depth Weighting)
     """
-    if trigger_service in {"load-generator", "locust", "jaeger", "prometheus"}:
-        logger.warning(f"[UpstreamCheck] Trigger service '{trigger_service}' is a synthetic test client/infra tool. Redirecting to application entrypoint 'frontend'.")
-        trigger_service = "frontend"
-
     if os.getenv("AIOPS_SIMULATION_MODE") == "true":
         return trigger_service
 
@@ -288,32 +285,16 @@ async def active_metrics_polling_loop():
                 anomalous_services = set()
                 
                 for service in SERVICES:
-                    # 1. Trích xuất đặc trưng thời gian thực
-                    df_features = detector.extract_features_realtime(service)
-                    if df_features.empty or len(df_features) < 1:
-                        # Fallback Z-Score nếu thiếu dữ liệu ngữ cảnh
-                        is_anomalous = detector.check_infra_anomaly(service, [])
-                    else:
-                        feature_cols = [
-                            "rps", "cpu_usage", "memory_usage", "latency_p90", "error_rate", "client_error_rate", "kafka_lag",
-                            "error_ratio", "client_error_ratio", "latency_deviation", "rps_delta", "cpu_per_rps", "memory_growth", "kafka_lag_growth",
-                            "hour_of_day", "day_of_week", "is_business_hours", "is_high_traffic_period"
-                        ]
-                        features_list = df_features[feature_cols].iloc[-1].tolist()
-                        
-                        # Real Degradation Guardrail: Bắt buộc phải có suy hao thực tế (Error > 0.01 hoặc Latency > 1.0s hoặc CPU > 0.85) mới coi là Anomaly
-                        rps_val = features_list[0]
-                        cpu_val = features_list[1]
-                        lat_val = features_list[3]
-                        err_val = features_list[4]
-                        
-                        if rps_val > 0.1 and (err_val > 0.01 or lat_val > 1.0 or cpu_val > 0.85):
-                            is_anomalous = detector.check_infra_anomaly(service, features_list)
-                        else:
-                            is_anomalous = False
-                    
+                    # 1. Gọi trực tiếp Isolation Forest Machine Learning Predictor
+                    res = detector.check_service_anomaly(service)
+                    is_anomalous = res.get("is_anomalous", False)
+                    pred = res.get("prediction", -1 if is_anomalous else 1)
+                    score = res.get("score", 0.0)
+
+                    logger.info(f"[ML Scan] Service '{service}': pred={pred} (1:Normal, -1:Anomaly), score={score:.4f}")
+
                     if is_anomalous:
-                        logger.warning(f"ML Isolation Forest proactively detected ANOMALY on service: {service}!")
+                        logger.warning(f"ML Isolation Forest proactively detected ANOMALY on service: {service} (pred={pred}, score={score:.4f})!")
                         anomalous_services.add(service)
                         consecutive_healthy_count[service] = 0
                     else:
@@ -409,8 +390,14 @@ async def active_metrics_polling_loop():
                         e for e in rolling_alert_buffer
                         if now_ts - e["fired_at"] <= ROLLING_ALERT_BUFFER_SECONDS
                     ]
-                    logger.info(f"[RollingBuffer] Buffer count: {len(rolling_alert_buffer)}")
+                    logger.info(
+                        f"[RollingBuffer] After prune: {len(rolling_alert_buffer)} entries "
+                        f"covering services: {sorted({e['service'] for e in rolling_alert_buffer})}"
+                    )
+
                     # Truyền TOÀN BỘ buffer (15 phút) cho correlator thay vì chỉ chu kỳ hiện tại
+                    # → correlator nhìn thấy recommendation (10:12) + frontend-proxy (10:13)
+                    #   trong cùng 1 window → gom đúng 1 cluster, bắn đúng 1 Slack
                     clusters = correlator.correlate_alerts_windowed(rolling_alert_buffer)
                     
                     for cluster in clusters:
@@ -418,13 +405,13 @@ async def active_metrics_polling_loop():
                         trace_id = cluster["trace_id"]
                         now_ts = time.time()
 
-                        # Check State-based Dedup: If service has an incident pending approval / open / proactive_warning / suppressed
-                        existing_inc = next((inc for inc in incidents_lifecycle.values() if inc.get("culprit_service") == service and inc.get("status") in ["pending_approval", "open", "proactive_warning", "suppressed"]), None)
+                        # Check State-based Dedup: If service has an incident pending approval / open / proactive_warning
+                        existing_inc = next((inc for inc in incidents_lifecycle.values() if inc.get("culprit_service") == service and inc.get("status") in ["pending_approval", "open", "proactive_warning"]), None)
                         if existing_inc:
                             existing_inc["alert_count"] = existing_inc.get("alert_count", 1) + 1
                             count = existing_inc["alert_count"]
                             logger.info(f"[LifecycleDeduP] Service {service} has open incident {existing_inc['incident_id']} in status '{existing_inc['status']}'. Incrementing alert_count to {count}.")
-                            if count % 5 == 0 and existing_inc.get("status") != "suppressed":
+                            if count % 5 == 0:
                                 reminder_num = count // 5
                                 reminder_msg = f"⚠️ [Reminder #{reminder_num}] {existing_inc['incident_id']} (Service {service} pending approval for {count} polling cycles)"
                                 logger.info(f"[SlackReminder] Dispatching reminder notification: {reminder_msg}")
@@ -925,12 +912,13 @@ def process_proactive_anomaly_background(incident_id: str, culprit_service: str,
         action_command = diagnosis.get("action_command", "")
         rollback_command = diagnosis.get("rollback_command", "")
         
-    # Quality Gate Validation: Check if LLM output is an unfilled placeholder template (not just quoting a Drain3 log string)
-    analysis_text = diagnosis.get("analysis", "").strip()
-    if analysis_text.startswith("[Template]") or analysis_text.startswith("[Unfilled") or "[X] Placeholder" in analysis_text:
-        logger.warning(f"[QualityGate] LLM returned unfilled template placeholder for {culprit_service}. Suppressing Slack notification.")
+    # Quality Gate Validation (Conflict 5 Fix): Check before saving to active_incidents cache
+    analysis_text = diagnosis.get("analysis", "")
+    if "[Template]" in analysis_text or "lỗi '[Template]'" in analysis_text or "[X]" in analysis_text:
+        logger.warning(f"[QualityGate] LLM returned unfilled template for {culprit_service}. Suppressing Slack notification.")
         if incident_id in incidents_lifecycle:
             incidents_lifecycle[incident_id]["status"] = "suppressed"
+        last_proactive_alert_time[culprit_service] = 0
         return
         
     log_templates = evidence.get("log_templates", [])

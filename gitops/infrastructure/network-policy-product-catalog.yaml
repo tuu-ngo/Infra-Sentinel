@@ -5,6 +5,7 @@ metadata:
   namespace: techx-tf3
   annotations:
     mandate-17.techx.io/service-clusterip-evidence: "2026-07-25:kube-dns=172.20.0.10,flagd=172.20.213.30,otel-gateway=172.20.117.175"
+    mandate-17.techx.io/ingress-caller-evidence: "2026-07-31:frontend,checkout,recommendation,product-reviews,shopping-copilot to product-catalog:8080"
 spec:
   podSelector:
     matchLabels:
@@ -24,6 +25,13 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: product-reviews
+        # shopping-copilot lives in gitops/shopping-copilot/, outside the techx-corp chart,
+        # so it labels with `app:` rather than app.kubernetes.io/component. Its own policy
+        # already allows egress here; without this matching ingress rule the call is dropped
+        # at the destination and the copilot's catalog lookups time out silently.
+        - podSelector:
+            matchLabels:
+              app: shopping-copilot
       ports:
         - { protocol: TCP, port: 8080 }
   egress:

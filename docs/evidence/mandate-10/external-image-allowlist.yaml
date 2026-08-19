@@ -1,6 +1,6 @@
 schemaVersion: 1
 firstPartyRepository: 197826770971.dkr.ecr.ap-southeast-1.amazonaws.com/techx-corp
-deploymentState: planned-audit-remediation
+deploymentState: enforced
 images:
   - image: busybox@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
     component: flagd-init-config
@@ -8,18 +8,23 @@ images:
     source: reviewed-registry-resolution
     reviewCadence: monthly
     lastReviewed: 2026-07-22
-  # The AIO02 entries below run in techx-tf3, so the policy judges them,
-  # but AIO02 owns their release cycle. They sit here rather than under the
-  # first-party policy because that one requires a CycloneDX attestation and
-  # build-push-copilot.yml signs without producing one. A version bump that
-  # forgets this file now fails the drift check on the pull request instead of
-  # rejecting pods at admission.
-  - image: 197826770971.dkr.ecr.ap-southeast-1.amazonaws.com/shopping-copilot@sha256:347bad1eccdd0fd5e20ea2b868359f71ed8da186e5b8f42d90329d2abd49e062
+  # The AIO02 entry below runs in techx-tf3, so the policy judges it, but AIO02
+  # owns its release cycle. It sits here rather than under the first-party
+  # policy for two reasons, both re-verified on 2026-07-30: that policy requires
+  # a CycloneDX attestation build-push-copilot.yml does not emit, and that
+  # workflow installs Cosign v3, whose OCI 1.1 referrers layout leaves no
+  # sha256-<digest>.sig tag for Kyverno's verifyImages to read.
+  #
+  # A version bump that forgets this file fails the drift check on the pull
+  # request instead of rejecting pods at admission - but only since the gate was
+  # wired to gitops/ and the chart. Before that it never ran on a bump, which is
+  # how 2a79781b reached the cluster uncatalogued.
+  - image: 197826770971.dkr.ecr.ap-southeast-1.amazonaws.com/shopping-copilot@sha256:2a79781bed10b259a4b19cf099d08ec5ba9fb05f0ae3e2ca927b783ce6b90fb1
     component: shopping-copilot
     owner: AIO02
     source: pinned-by-aio02-ci
     reviewCadence: per-release
-    lastReviewed: 2026-07-28
+    lastReviewed: 2026-07-30
   # Upstream Grafana is gone: PM-176 replaced it with a first-party image that
   # bakes the OpenSearch plugin, so Grafana is verified by signature and SBOM
   # now, not by this catalogue.

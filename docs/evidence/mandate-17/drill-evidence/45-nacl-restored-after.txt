@@ -1,0 +1,109 @@
+﻿# EV-08 NACL da tra nguyen trang (so voi 05-nacl-baseline-before.txt)
+# phase=after  utc=20260730-180505
+------------------------------------------------------------------------
+subnet=subnet-045de0d768b5c49f1
+{
+    "NetworkAcls": [
+        {
+            "Associations": [
+                {
+                    "NetworkAclAssociationId": "aclassoc-0d7c50c60ec775146",
+                    "NetworkAclId": "acl-0c7e1cead7edbc9f3",
+                    "SubnetId": "subnet-03036559d3f64fb6f"
+                },
+                {
+                    "NetworkAclAssociationId": "aclassoc-0de771d2cc3b76e70",
+                    "NetworkAclId": "acl-0c7e1cead7edbc9f3",
+                    "SubnetId": "subnet-0b43a804b2263cacb"
+                },
+                {
+                    "NetworkAclAssociationId": "aclassoc-05929e7d0494cd38e",
+                    "NetworkAclId": "acl-0c7e1cead7edbc9f3",
+                    "SubnetId": "subnet-0bb52c28be321f99f"
+                },
+                {
+                    "NetworkAclAssociationId": "aclassoc-0c6581ee6ecbd6181",
+                    "NetworkAclId": "acl-0c7e1cead7edbc9f3",
+                    "SubnetId": "subnet-0a56de94943c45499"
+                },
+                {
+                    "NetworkAclAssociationId": "aclassoc-05e771041710572c5",
+                    "NetworkAclId": "acl-0c7e1cead7edbc9f3",
+                    "SubnetId": "subnet-045de0d768b5c49f1"
+                },
+                {
+                    "NetworkAclAssociationId": "aclassoc-07742734bf5179b44",
+                    "NetworkAclId": "acl-0c7e1cead7edbc9f3",
+                    "SubnetId": "subnet-0fdf5cd134c155b94"
+                }
+            ],
+            "Entries": [
+                {
+                    "CidrBlock": "0.0.0.0/0",
+                    "Egress": true,
+                    "Protocol": "-1",
+                    "RuleAction": "allow",
+                    "RuleNumber": 100
+                },
+                {
+                    "Egress": true,
+                    "Ipv6CidrBlock": "::/0",
+                    "Protocol": "-1",
+                    "RuleAction": "allow",
+                    "RuleNumber": 101
+                },
+                {
+                    "CidrBlock": "0.0.0.0/0",
+                    "Egress": true,
+                    "Protocol": "-1",
+                    "RuleAction": "deny",
+                    "RuleNumber": 32767
+                },
+                {
+                    "CidrBlock": "0.0.0.0/0",
+                    "Egress": false,
+                    "Protocol": "-1",
+                    "RuleAction": "allow",
+                    "RuleNumber": 100
+                },
+                {
+                    "Egress": false,
+                    "Ipv6CidrBlock": "::/0",
+                    "Protocol": "-1",
+                    "RuleAction": "allow",
+                    "RuleNumber": 101
+                },
+                {
+                    "CidrBlock": "0.0.0.0/0",
+                    "Egress": false,
+                    "Protocol": "-1",
+                    "RuleAction": "deny",
+                    "RuleNumber": 32767
+                }
+            ],
+            "IsDefault": true,
+            "NetworkAclId": "acl-0c7e1cead7edbc9f3",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "techx-corp-tf3-vpc-default"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "project",
+                    "Value": "techx-corp-phase3"
+                },
+                {
+                    "Key": "team",
+                    "Value": "TF3"
+                }
+            ],
+            "VpcId": "vpc-0c0b86b42bbbefd55",
+            "OwnerId": "197826770971"
+        }
+    ]
+}
+

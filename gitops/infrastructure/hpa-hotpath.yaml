@@ -14,11 +14,16 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: frontend-proxy-hpa
   namespace: techx-tf3
+  annotations:
+    # Mandate-19 capacity step (30/07/2026): proxy đạt 70%/65% ở 7/8 replica tại
+    # stage vỡ 1400 user — sát trần. Nới 8 -> 12 để proxy không thành nút thắt
+    # kế tiếp sau khi frontend được nới. Đo: docs/evidence/mandate-19/real-2026-07-30/
+    mandate-19.techx.io/capacity-step: "2026-07-30"
 spec:
   scaleTargetRef:
     { apiVersion: apps/v1, kind: Deployment, name: frontend-proxy }
   minReplicas: 2
-  maxReplicas: 8
+  maxReplicas: 12
   metrics:
     - type: Resource
       resource:
@@ -47,10 +52,27 @@ metadata:
     # 410-user failing stage. The higher target packs more work on each existing
     # node. This staged PR changes only the CPU request/target; raise maxReplicas
     # in a separately measured capacity step after the 65% target is validated.
+    #
+    # Mandate-19 capacity step — ĐÂY là bước đo đã hứa ở trên (30/07/2026).
+    # Đo exact-window trên node-set cố định 9 node (hash 54755c311f1a64b9),
+    # generator ngoài cluster (scripts/mandate-19/):
+    #   1000 user (trần): frontend 112%/65% ở 8/8 replica  — ĐỤNG TRẦN maxReplicas
+    #   1400 user (vỡ):   frontend 128%/65% ở 8/8 replica  — vẫn đụng trần
+    # Trong khi đó CPU node cao nhất chỉ 60% và 2 node gần rỗng (1%, 7%).
+    # Nghĩa là trần thông lượng bị chặn bởi maxReplicas, KHÔNG bởi capacity node.
+    # Nới 8 -> 16 để HPA dùng được phần CPU node đang bỏ không. Không thêm node.
+    mandate-19.techx.io/capacity-step: "2026-07-30"
+    mandate-19.techx.io/evidence: "docs/evidence/mandate-19/real-2026-07-30/"
 spec:
   scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: frontend }
-  minReplicas: 2
-  maxReplicas: 8
+  # REL-21 (Mandate-21): 2 -> 3. topologySpread zone (maxSkew=1 DoNotSchedule) chỉ áp
+  # LÚC SCHEDULE; K8s KHÔNG rebalance khi HPA scale-down. Với min=2, một lần scale-down
+  # xoá đúng pod ở AZ thiểu số -> cả 2 replica dồn 1 AZ (đã thấy 30/07: 2/2 ở 1c). Mất
+  # AZ đó là storefront sập. Với elastic chỉ ở 2 AZ (1a+1c), min=3 luôn rải 2+1 (3+0 vi
+  # phạm maxSkew nên không xảy ra) -> mất bất kỳ AZ nào vẫn còn >=1 replica, kể cả sau
+  # scale-down. Fix gốc rễ (descheduler / elastic AZ thứ 3) theo dõi riêng.
+  minReplicas: 3
+  maxReplicas: 16
   metrics:
     - type: Resource
       resource:
@@ -74,11 +96,16 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: product-catalog-hpa
   namespace: techx-tf3
+  annotations:
+    # Mandate-19 capacity step (30/07/2026): product-catalog đạt đúng 65%/65% ở
+    # 6/8 tại stage vỡ, và là downstream của product-detail — đường đã sinh 565 lỗi
+    # 500 ở 1800 user. Nới 8 -> 12 để nó không chặn sau khi frontend được nới.
+    mandate-19.techx.io/capacity-step: "2026-07-30"
 spec:
   scaleTargetRef:
     { apiVersion: apps/v1, kind: Deployment, name: product-catalog }
   minReplicas: 2
-  maxReplicas: 8
+  maxReplicas: 12
   metrics:
     - type: Resource
       resource:
@@ -132,10 +159,19 @@ metadata:
 spec:
   # checkout now migrates through checkout-rollout. Target the Rollout scale
   # subresource so HPA retains REL-01's minReplicas=2 during each canary step.
+  #
+  # Mandate-19 capacity step (30/07/2026): checkout là nguồn của lỗi người dùng
+  # thấy nhiều nhất khi vượt trần. Đo trên node-set cố định 9 node:
+  #   1000 user: checkout 64%/65% ở 5/8   -> checkout client-side 99,89% OK
+  #   1400 user: checkout 89%/65% ở 8/8   -> 3.912/5.526 checkout trả 504 (29,2% OK)
+  #   1800 user: 8/8                      -> 6.465/6.961 trả 504 (7,1% OK)
+  # 504 sinh ra khi latency checkout vượt route timeout mặc định 15s của Envoy
+  # (checkout p95/p99 đo được ghim đúng 15000ms = bucket histogram cao nhất).
+  # Nới 8 -> 14 để checkout còn scale được trước khi đụng timeout. Không thêm node.
   scaleTargetRef:
     { apiVersion: argoproj.io/v1alpha1, kind: Rollout, name: checkout-rollout }
   minReplicas: 2
-  maxReplicas: 8
+  maxReplicas: 14
   metrics:
     - type: Resource
       resource:
@@ -263,3 +299,55 @@ spec:
       selectPolicy: Max
     scaleDown:
       stabilizationWindowSeconds: 120
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: email-hpa
+  namespace: techx-tf3
+  annotations:
+    # Mandate-19: email LÀ nút thắt thông lượng của toàn hệ. Bằng chứng đo 30/07
+    # (docs/evidence/mandate-19/real-2026-07-30/, stage 1400 user):
+    #   span CLIENT `POST` của checkout -> email  p95 = 15000 ms
+    #   span SERVER của email                     p95 =   391 ms
+    # 14,6 giây chênh lệch KHÔNG phải thời gian xử lý — là thời gian XẾP HÀNG trước
+    # khi Puma nhận request. Đúng loại bão hoà directive #19 nêu tên: "không phải
+    # chậm - mà cạn: connection/queue depth".
+    #
+    # Vì sao nó kéo sập checkout: checkout gọi sendOrderConfirmation ĐỒNG BỘ
+    # (src/checkout/main.go:473) và không đặt deadline riêng, nên hàng đợi của email
+    # ăn trọn budget 15s của route Envoy -> 504. Ở stage 1400 user: 3.432/5.431 đơn
+    # trả 504, chiếm 82% toàn bộ lỗi client của stage.
+    #
+    # Vì sao 1 replica không đủ: email là Ruby/Sinatra trên Puma — MRI có GIL nên
+    # concurrency thật ~1 core, mà limit CPU chỉ 100m = 0,1 core. 14,7 rps x 391 ms
+    # = ~5,8 request đồng thời, vượt sức 1 pod.
+    #
+    # email KHÔNG bị ghim vào tầng elastic (không có trong values-mandate13.yaml) —
+    # nó nằm trên node managed t3.large đang rảnh (~20-30% CPU thật). Nên scale out
+    # ở đây dùng chỗ trống của node ĐANG CÓ, không thêm node.
+    mandate-19.techx.io/bottleneck: "queue-depth"
+    mandate-19.techx.io/evidence: "docs/evidence/mandate-19/real-2026-07-30/"
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: email }
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        { name: cpu, target: { type: Utilization, averageUtilization: 60 } }
+  behavior:
+    scaleUp:
+      # Hàng đợi email dựng lên trong vài giây khi checkout tăng tốc; phản ứng phải
+      # nhanh hơn các service browse (bước 4 pod/phút thay vì 2).
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 60
+        - type: Pods
+          value: 4
+          periodSeconds: 60
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 180

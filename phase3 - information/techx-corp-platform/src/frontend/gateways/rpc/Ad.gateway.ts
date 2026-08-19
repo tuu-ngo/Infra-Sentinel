@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { CallOptions, ChannelCredentials, Metadata } from '@grpc/grpc-js';
+import { dnsTarget, loadBalancedChannelOptions } from './grpcChannel';
 import { AdResponse, AdServiceClient } from '../../protos/demo';
 
 const { AD_ADDR = '' } = process.env;
@@ -12,7 +13,11 @@ const { AD_ADDR = '' } = process.env;
 // non-critical page enrichment; the caller degrades to no-ads on error/timeout.
 const AD_DEADLINE_MS = Number(process.env.AD_DEADLINE_MS) || 300;
 
-const client = new AdServiceClient(AD_ADDR, ChannelCredentials.createInsecure());
+const client = new AdServiceClient(
+  dnsTarget(AD_ADDR),
+  ChannelCredentials.createInsecure(),
+  loadBalancedChannelOptions
+);
 
 const AdGateway = () => ({
   listAds(contextKeys: string[]) {

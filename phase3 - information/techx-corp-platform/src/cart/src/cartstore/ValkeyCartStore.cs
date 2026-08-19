@@ -88,7 +88,8 @@ public class ValkeyCartStore : ICartStore
     }
 
     // Mandate #8: build StackExchange.Redis options with optional TLS + AUTH token.
-    // Preserves the original retry/keepalive tuning. Defaults keep ssl off and no password.
+    // Retry policy giữ nguyên; KeepAlive hạ 180->5s cho AZ failover (REL-17-07, xem dưới).
+    // Defaults keep ssl off and no password.
     private static ConfigurationOptions BuildConnectionOptions(string address, bool useTls, string authToken, int connectRetry)
     {
         var options = ConfigurationOptions.Parse($"{address},allowAdmin=true,abortConnect=false");
@@ -99,7 +100,12 @@ public class ValkeyCartStore : ICartStore
         }
         options.ConnectRetry = connectRetry;
         options.ReconnectRetryPolicy = new ExponentialRetry(1000);
-        options.KeepAlive = 180;
+        // REL-17-07 (Mandate 17/21 AZ failover): 180 -> 5s. KeepAlive là chu kỳ ping để
+        // StackExchange.Redis phát hiện kết nối chết. Khi ElastiCache failover, node cũ
+        // tụt xuống replica nhưng TCP cũ vẫn mở; với 180s client mất tới ~3 phút mới nhận
+        // ra -> cart 500 suốt 70s+ (đo drill M17 30/07 + test-failover). 5s rút thời gian
+        // gãy về xấp xỉ cửa sổ failover thật của ElastiCache (~30s). Ping mỗi 5s rẻ.
+        options.KeepAlive = 5;
         return options;
     }
 

@@ -2,12 +2,27 @@ name: Test Image Bump PR
 
 "on":
   pull_request:
+    # The allow-list drift step below reads the chart, values-prod.yaml, the
+    # external ClusterPolicy and every manifest under gitops/. Until 2026-07-30
+    # none of those were listed here, so the gate never ran on the changes it
+    # exists to judge: both commits behind the shopping-copilot admission gap
+    # (9b774a6, 233ecca) touched only gitops/ and merged green. A path filter
+    # narrower than the step's inputs is a gate that reports on files it does
+    # not read. test_drift_gate_trigger_covers_its_inputs.py keeps them in sync.
     paths:
       - ".github/workflows/**"
       - ".semgrep/**"
       - ".trivy-secret.yaml"
+      # Redundant under gitops/**, kept because
+      # test_arm_nodepool_contract.py asserts this exact string is present.
+      # That guard belongs to Mandate 13; widening a filter is no reason to
+      # loosen someone else's assertion about it.
       - "gitops/karpenter/**"
+      - "gitops/**"
+      - "phase3 - information/techx-corp-chart/**"
+      - "phase3 - information/deploy/values-prod.yaml"
       - "scripts/ci/**"
+      - "docs/evidence/mandate-10/external-image-allowlist.yaml"
       - "docs/ci-image-override-walkthrough.md"
   workflow_dispatch:
 

@@ -12,6 +12,7 @@ import time
 import hashlib
 import logging
 import contextvars
+import re
 from typing import Dict, Any, List, Optional
 
 from langchain_aws import ChatBedrockConverse
@@ -55,6 +56,7 @@ from src.tools.catalog_tool import (
 from src.llm.prompt import SYSTEM_PROMPT, INTENT_PARSE_PROMPT, EVIDENCE_SYNTHESIS_PROMPT
 
 logger = logging.getLogger("agent.copilot_agent")
+PRODUCT_ID_PATTERN = re.compile(r"^[A-Z0-9]{8,12}$")
 
 TOOLS_MAP: Dict[str, Any] = {t.name: t for t in all_shopping_tools}
 
@@ -593,7 +595,7 @@ class CopilotAgent:
 
         if task_type == "add_to_cart":
             pid = intent.get("product_id")
-            pname = intent.get("product_name")
+            pname = intent.get("product_name") or intent.get("product_query")
             qty = intent.get("quantity", 1)
             if pid:
                 plan.append(
@@ -602,6 +604,17 @@ class CopilotAgent:
                         "args": {
                             "user_id": user_id,
                             "product_id": pid,
+                            "quantity": qty,
+                        },
+                    }
+                )
+            elif pname and PRODUCT_ID_PATTERN.match(str(pname).strip().upper()):
+                plan.append(
+                    {
+                        "name": "add_to_cart_tool",
+                        "args": {
+                            "user_id": user_id,
+                            "product_id": str(pname).strip().upper(),
                             "quantity": qty,
                         },
                     }
@@ -1787,7 +1800,8 @@ Respond with exactly one word: PASS or FAIL
                         product_id=action_data["params"]["product_id"],
                         quantity=action_data["params"]["quantity"],
                     ),
-                )
+                ),
+                timeout=3.0,
             )
             self._sessions.append_message(session_id, "user", "Xác nhận hành động")
             self._sessions.append_message(

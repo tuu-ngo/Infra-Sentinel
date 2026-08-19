@@ -1,0 +1,54 @@
+{
+    "experiment": {
+        "id": "EXP3eBP7bCoCeEGt4a",
+        "arn": "arn:aws:fis:ap-southeast-1:197826770971:experiment/EXP3eBP7bCoCeEGt4a",
+        "experimentTemplateId": "EXT9JSZivevPf3Hoe",
+        "roleArn": "arn:aws:iam::197826770971:role/tf3-fis-experiment",
+        "state": {
+            "status": "initiating",
+            "reason": "Experiment is initiating."
+        },
+        "targets": {
+            "target-az-subnet": {
+                "resourceType": "aws:ec2:subnet",
+                "resourceArns": [
+                    "arn:aws:ec2:ap-southeast-1:197826770971:subnet/subnet-0fdf5cd134c155b94"
+                ],
+                "selectionMode": "ALL"
+            }
+        },
+        "actions": {
+            "disrupt-az-connectivity": {
+                "actionId": "aws:network:disrupt-connectivity",
+                "description": "Blackhole traffic in and out of the target AZ subnet.",
+                "parameters": {
+                    "duration": "PT5M",
+                    "scope": "availability-zone"
+                },
+                "targets": {
+                    "Subnets": "target-az-subnet"
+                },
+                "state": {
+                    "status": "pending",
+                    "reason": "Initial state"
+                }
+            }
+        },
+        "stopConditions": [
+            {
+                "source": "aws:cloudwatch:alarm",
+                "value": "arn:aws:cloudwatch:ap-southeast-1:197826770971:alarm:tf3-fis-stop-storefront-5xx"
+            }
+        ],
+        "creationTime": "2026-07-31T08:54:15.835000+07:00",
+        "startTime": "2026-07-31T08:54:16.146000+07:00",
+        "tags": {
+            "Name": "m21-az1c-drill"
+        },
+        "experimentOptions": {
+            "accountTargeting": "single-account",
+            "emptyTargetResolutionMode": "fail",
+            "actionsMode": "run-all"
+        }
+    }
+}

@@ -1,0 +1,15 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,/api/cart,HTTPError('503 Server Error: Service Unavailable for url: /api/cart'),3,2026-07-30T05:46:04Z,2026-07-30T05:51:33Z
+GET,/api/product-reviews/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/product-reviews/[id]'),4,2026-07-30T05:46:02Z,2026-07-30T05:51:03Z
+GET,/api/products/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/products/[id]'),1713,2026-07-30T05:45:15Z,2026-07-30T05:51:56Z
+GET,/,HTTPError('503 Server Error: Service Unavailable for url: /'),2,2026-07-30T05:47:10Z,2026-07-30T05:52:03Z
+GET,/api/data/,HTTPError('503 Server Error: Service Unavailable for url: /api/data/'),8,2026-07-30T05:45:21Z,2026-07-30T05:52:01Z
+POST,/api/product-ask-ai-assistant/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/product-ask-ai-assistant/[id]'),1,2026-07-30T05:48:26Z,2026-07-30T05:48:26Z
+GET,/api/products/[id],HTTPError('503 Server Error: Service Unavailable for url: /api/products/[id]'),14,2026-07-30T05:45:36Z,2026-07-30T05:52:01Z
+POST,/api/checkout,HTTPError('504 Server Error: Gateway Timeout for url: /api/checkout'),8267,2026-07-30T05:45:35Z,2026-07-30T05:52:11Z
+GET,/api/recommendations,HTTPError('503 Server Error: Service Unavailable for url: /api/recommendations'),7,2026-07-30T05:45:21Z,2026-07-30T05:51:23Z
+GET,/api/product-reviews/[id],HTTPError('503 Server Error: Service Unavailable for url: /api/product-reviews/[id]'),3953,2026-07-30T05:45:15Z,2026-07-30T05:52:11Z
+GET,/api/cart,HTTPError('503 Server Error: Service Unavailable for url: /api/cart'),3,2026-07-30T05:45:55Z,2026-07-30T05:51:12Z
+POST,/api/product-ask-ai-assistant/[id],HTTPError('503 Server Error: Service Unavailable for url: /api/product-ask-ai-assistant/[id]'),1,2026-07-30T05:46:06Z,2026-07-30T05:46:06Z
+POST,/api/checkout,HTTPError('503 Server Error: Service Unavailable for url: /api/checkout'),1,2026-07-30T05:46:13Z,2026-07-30T05:46:13Z
+POST,/api/checkout,HTTPError('500 Server Error: Internal Server Error for url: /api/checkout'),585,2026-07-30T05:45:24Z,2026-07-30T05:50:35Z

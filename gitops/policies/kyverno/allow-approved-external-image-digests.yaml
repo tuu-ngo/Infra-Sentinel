@@ -38,16 +38,19 @@ spec:
                 # be judged against the external catalogue it can never appear
                 # in, instead of against its signature and SBOM.
                 #
-                # shopping-copilot is first-party too - built, Trivy-gated and
-                # Cosign-signed by .github/workflows/build-push-copilot.yml - but
-                # it lives in its own ECR repository rather than techx-corp. Once
-                # this policy moved to Enforce (2026-07-28) that made every
-                # copilot deploy fail admission, because an image that can never
-                # be in the reviewed external catalogue was being judged against
-                # it. It is NOT yet in verify-first-party-signatures: that policy
-                # also requires a CycloneDX SBOM attestation, which the copilot
-                # build does not produce yet (follow-up).
-                - key: "{{ regex_match('^197826770971[.]dkr[.]ecr[.]ap-southeast-1[.]amazonaws[.]com/(techx-corp|shopping-copilot)(:[^@]+)?@sha256:[0-9a-f]{64}$', element.image) }}"
+                # shopping-copilot is first-party by ownership - built,
+                # Trivy-gated and Cosign-signed by build-push-copilot.yml - but
+                # it is judged here, by exact digest, rather than by signature.
+                # Two independent blockers, both verified on 2026-07-30:
+                #   1. verify-first-party-signatures also requires a CycloneDX
+                #      attestation, which build-push-copilot.yml does not emit.
+                #   2. That workflow installs Cosign v3, which writes the OCI
+                #      1.1 referrers layout. No sha256-<digest>.sig tag exists
+                #      in ECR, and Kyverno's verifyImages reads only the legacy
+                #      layout - so a signature rule would deny every pod.
+                # Excluding it from this rule verifies it nowhere, which is what
+                # briefly happened. Catalogue it until both blockers are gone.
+                - key: "{{ regex_match('^197826770971[.]dkr[.]ecr[.]ap-southeast-1[.]amazonaws[.]com/techx-corp(:[^@]+)?@sha256:[0-9a-f]{64}$', element.image) }}"
                   operator: Equals
                   value: false
             deny:
@@ -57,7 +60,7 @@ spec:
                     operator: NotIn
                     value:
                       - busybox@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
-                      - 197826770971.dkr.ecr.ap-southeast-1.amazonaws.com/shopping-copilot@sha256:347bad1eccdd0fd5e20ea2b868359f71ed8da186e5b8f42d90329d2abd49e062
+                      - 197826770971.dkr.ecr.ap-southeast-1.amazonaws.com/shopping-copilot@sha256:2a79781bed10b259a4b19cf099d08ec5ba9fb05f0ae3e2ca927b783ce6b90fb1
                       - cloudflare/cloudflared:2026.7.1@sha256:188bb03589a32affed3cf4d0590565ffe67b78866e6b5582574afab2b705bafe
                       - envoyproxy/envoy:v1.34.10@sha256:3343a698c1bdfdbb174f1bd907dea789d728692f4f99a943e3e6f0bc5ef6513f
                       - ghcr.io/open-feature/flagd@sha256:e6cca86b29629a06806aa7954b4a9b5f291c30839c6ae4f815dc4ddcee4a0746
@@ -75,16 +78,19 @@ spec:
                 # be judged against the external catalogue it can never appear
                 # in, instead of against its signature and SBOM.
                 #
-                # shopping-copilot is first-party too - built, Trivy-gated and
-                # Cosign-signed by .github/workflows/build-push-copilot.yml - but
-                # it lives in its own ECR repository rather than techx-corp. Once
-                # this policy moved to Enforce (2026-07-28) that made every
-                # copilot deploy fail admission, because an image that can never
-                # be in the reviewed external catalogue was being judged against
-                # it. It is NOT yet in verify-first-party-signatures: that policy
-                # also requires a CycloneDX SBOM attestation, which the copilot
-                # build does not produce yet (follow-up).
-                - key: "{{ regex_match('^197826770971[.]dkr[.]ecr[.]ap-southeast-1[.]amazonaws[.]com/(techx-corp|shopping-copilot)(:[^@]+)?@sha256:[0-9a-f]{64}$', element.image) }}"
+                # shopping-copilot is first-party by ownership - built,
+                # Trivy-gated and Cosign-signed by build-push-copilot.yml - but
+                # it is judged here, by exact digest, rather than by signature.
+                # Two independent blockers, both verified on 2026-07-30:
+                #   1. verify-first-party-signatures also requires a CycloneDX
+                #      attestation, which build-push-copilot.yml does not emit.
+                #   2. That workflow installs Cosign v3, which writes the OCI
+                #      1.1 referrers layout. No sha256-<digest>.sig tag exists
+                #      in ECR, and Kyverno's verifyImages reads only the legacy
+                #      layout - so a signature rule would deny every pod.
+                # Excluding it from this rule verifies it nowhere, which is what
+                # briefly happened. Catalogue it until both blockers are gone.
+                - key: "{{ regex_match('^197826770971[.]dkr[.]ecr[.]ap-southeast-1[.]amazonaws[.]com/techx-corp(:[^@]+)?@sha256:[0-9a-f]{64}$', element.image) }}"
                   operator: Equals
                   value: false
             deny:
@@ -94,7 +100,7 @@ spec:
                     operator: NotIn
                     value:
                       - busybox@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
-                      - 197826770971.dkr.ecr.ap-southeast-1.amazonaws.com/shopping-copilot@sha256:347bad1eccdd0fd5e20ea2b868359f71ed8da186e5b8f42d90329d2abd49e062
+                      - 197826770971.dkr.ecr.ap-southeast-1.amazonaws.com/shopping-copilot@sha256:2a79781bed10b259a4b19cf099d08ec5ba9fb05f0ae3e2ca927b783ce6b90fb1
                       - cloudflare/cloudflared:2026.7.1@sha256:188bb03589a32affed3cf4d0590565ffe67b78866e6b5582574afab2b705bafe
                       - envoyproxy/envoy:v1.34.10@sha256:3343a698c1bdfdbb174f1bd907dea789d728692f4f99a943e3e6f0bc5ef6513f
                       - ghcr.io/open-feature/flagd@sha256:e6cca86b29629a06806aa7954b4a9b5f291c30839c6ae4f815dc4ddcee4a0746
@@ -112,16 +118,19 @@ spec:
                 # be judged against the external catalogue it can never appear
                 # in, instead of against its signature and SBOM.
                 #
-                # shopping-copilot is first-party too - built, Trivy-gated and
-                # Cosign-signed by .github/workflows/build-push-copilot.yml - but
-                # it lives in its own ECR repository rather than techx-corp. Once
-                # this policy moved to Enforce (2026-07-28) that made every
-                # copilot deploy fail admission, because an image that can never
-                # be in the reviewed external catalogue was being judged against
-                # it. It is NOT yet in verify-first-party-signatures: that policy
-                # also requires a CycloneDX SBOM attestation, which the copilot
-                # build does not produce yet (follow-up).
-                - key: "{{ regex_match('^197826770971[.]dkr[.]ecr[.]ap-southeast-1[.]amazonaws[.]com/(techx-corp|shopping-copilot)(:[^@]+)?@sha256:[0-9a-f]{64}$', element.image) }}"
+                # shopping-copilot is first-party by ownership - built,
+                # Trivy-gated and Cosign-signed by build-push-copilot.yml - but
+                # it is judged here, by exact digest, rather than by signature.
+                # Two independent blockers, both verified on 2026-07-30:
+                #   1. verify-first-party-signatures also requires a CycloneDX
+                #      attestation, which build-push-copilot.yml does not emit.
+                #   2. That workflow installs Cosign v3, which writes the OCI
+                #      1.1 referrers layout. No sha256-<digest>.sig tag exists
+                #      in ECR, and Kyverno's verifyImages reads only the legacy
+                #      layout - so a signature rule would deny every pod.
+                # Excluding it from this rule verifies it nowhere, which is what
+                # briefly happened. Catalogue it until both blockers are gone.
+                - key: "{{ regex_match('^197826770971[.]dkr[.]ecr[.]ap-southeast-1[.]amazonaws[.]com/techx-corp(:[^@]+)?@sha256:[0-9a-f]{64}$', element.image) }}"
                   operator: Equals
                   value: false
             deny:
@@ -131,7 +140,7 @@ spec:
                     operator: NotIn
                     value:
                       - busybox@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
-                      - 197826770971.dkr.ecr.ap-southeast-1.amazonaws.com/shopping-copilot@sha256:347bad1eccdd0fd5e20ea2b868359f71ed8da186e5b8f42d90329d2abd49e062
+                      - 197826770971.dkr.ecr.ap-southeast-1.amazonaws.com/shopping-copilot@sha256:2a79781bed10b259a4b19cf099d08ec5ba9fb05f0ae3e2ca927b783ce6b90fb1
                       - cloudflare/cloudflared:2026.7.1@sha256:188bb03589a32affed3cf4d0590565ffe67b78866e6b5582574afab2b705bafe
                       - envoyproxy/envoy:v1.34.10@sha256:3343a698c1bdfdbb174f1bd907dea789d728692f4f99a943e3e6f0bc5ef6513f
                       - ghcr.io/open-feature/flagd@sha256:e6cca86b29629a06806aa7954b4a9b5f291c30839c6ae4f815dc4ddcee4a0746

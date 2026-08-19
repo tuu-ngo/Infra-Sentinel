@@ -232,6 +232,36 @@ def ipblocks_for_egress_port(policy, port):
     return cidrs
 
 
+def aiops_egress_proxy_authority_matchers():
+    documents = load_documents(REPO / "gitops/aiops-engine/egress-proxy.yaml")
+    config_map = next(
+        document
+        for document in documents
+        if document["kind"] == "ConfigMap"
+        and document["metadata"]["name"] == "aiops-egress-proxy-config"
+    )
+    envoy_config = yaml.safe_load(config_map["data"]["egress-proxy.yaml"])
+    hcm_config = envoy_config["static_resources"]["listeners"][0]["filter_chains"][0][
+        "filters"
+    ][0]["typed_config"]
+    rbac_filter = next(
+        item
+        for item in hcm_config["http_filters"]
+        if item["name"] == "envoy.filters.http.rbac"
+    )
+    permissions = rbac_filter["typed_config"]["rules"]["policies"][
+        "aiops_reviewed_external_https"
+    ]["permissions"]
+
+    matchers = []
+    for permission in permissions:
+        for rule in permission["and_rules"]["rules"]:
+            header = rule.get("header")
+            if header and header["name"] == ":authority":
+                matchers.append(header["string_match"])
+    return matchers
+
+
 def test_grafana_policy_uses_post_dnat_pod_peers_and_private_api_subnets():
     active = load_active_policy(
         "network-policy-grafana.yaml", "grafana-network-policy"
@@ -1029,6 +1059,45 @@ def test_aiops_egress_proxy_accepts_http10_connect_clients():
     ][0]["typed_config"]
 
     assert hcm_config["http_protocol_options"]["accept_http_10"] is True
+
+
+def test_aiops_egress_proxy_allows_aws_authorities_with_optional_default_https_port():
+    matchers = aiops_egress_proxy_authority_matchers()
+    required_hosts = {
+        "sts.amazonaws.com",
+        "sts.ap-southeast-1.amazonaws.com",
+        "s3.ap-southeast-1.amazonaws.com",
+        "tf3-aiops-models-197826770971.s3.amazonaws.com",
+        "tf3-aiops-models-197826770971.s3.ap-southeast-1.amazonaws.com",
+        "bedrock-runtime.us-east-1.amazonaws.com",
+        "bedrock-agent-runtime.us-east-1.amazonaws.com",
+    }
+
+    for host in required_hosts:
+        escaped_host = host.replace(".", "\\.")
+        assert {
+            "safe_regex": {
+                "google_re2": {},
+                "regex": f"^{escaped_host}(?::443)?$",
+            }
+        } in matchers
+
+
+def test_aiops_engine_pins_irsa_regional_sts_and_model_bucket():
+    deployment = next(
+        document
+        for document in load_documents(REPO / "gitops/aiops-engine/deployment.yaml")
+        if document["kind"] == "Deployment"
+        and document["metadata"]["name"] == "aiops-engine"
+    )
+    env = {
+        item["name"]: item["value"]
+        for item in deployment["spec"]["template"]["spec"]["containers"][0]["env"]
+        if "value" in item
+    }
+
+    assert env["AWS_STS_REGIONAL_ENDPOINTS"] == "regional"
+    assert env["AIOPS_S3_BUCKET"] == "tf3-aiops-models-197826770971"
 
 
 def test_default_deny_is_empty_and_marked_last():

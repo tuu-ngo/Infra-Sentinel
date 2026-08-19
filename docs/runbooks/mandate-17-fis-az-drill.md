@@ -20,6 +20,20 @@
 
 ## 1. Điều kiện tiên quyết
 
+> **Đã apply 30/07/2026** (`terraform-apply`, `action: apply`, `scope: m17-fis` — plan `5 to add, 0 to change, 0 to destroy`).
+> Giá trị thật đã verify trên account, dùng để đối chiếu khi chạy lệnh bên dưới:
+>
+> | Resource | Giá trị |
+> |---|---|
+> | Experiment template id | `EXT9JSZivevPf3Hoe` |
+> | Role FIS assume | `arn:aws:iam::197826770971:role/tf3-fis-experiment` |
+> | Managed policy đính kèm | `AWSFaultInjectionSimulatorNetworkAccess`, `AWSFaultInjectionSimulatorEC2Access` |
+> | Stop condition | `arn:aws:cloudwatch:ap-southeast-1:197826770971:alarm:tf3-fis-stop-storefront-5xx` |
+> | Subnet mục tiêu | `subnet-045de0d768b5c49f1` = `techx-corp-tf3-vpc-private-ap-southeast-1b` |
+> | Action / scope / duration | `aws:network:disrupt-connectivity` · `availability-zone` · `PT5M` |
+>
+> Vẫn nên lấy `TPL` bằng lệnh động ở bảng dưới thay vì hard-code id — nếu template bị tạo lại, id sẽ đổi.
+
 | Việc | Cách kiểm |
 |---|---|
 | Terraform đã apply | `aws fis list-experiment-templates --region ap-southeast-1` phải thấy template |
@@ -35,6 +49,18 @@
 ### 2.1. Prometheus có thể đang nằm trong 1b → bắn xong là mù
 
 Anti-affinity REL-17-04 đẩy Grafana và Prometheus ra 2 AZ khác nhau. Lần verify gần nhất: **Grafana ở 1a, Prometheus ở 1b**. Nếu giữ nguyên mà bắn 1b thì **mất luôn nguồn metric ngay giữa bài đo** — không còn gì để chứng minh SLO.
+
+> ✅ **Đã xử lý 30/07/2026 13:20 UTC.** Prometheus đã được đẩy từ `ip-10-0-24-177` (1b) sang
+> `ip-10-0-43-83` (**1c**); Grafana vẫn ở 1a. Cả hai đều ngoài vùng bắn.
+>
+> ⚠️ **Cái giá phải trả, phải biết trước khi làm lại:** `storage-volume` của Prometheus là
+> **`emptyDir`**, `--storage.tsdb.retention.time=7d`, **không có remote-write**. Xoá pod =
+> **mất trắng tới 7 ngày lịch sử metric của cả cluster**, ảnh hưởng cả AIO02. Phải báo trước,
+> và phải chờ tích đủ baseline mới bắn (xem §3).
+>
+> Không dùng `kubectl patch`/`nodeSelector` để dời: ArgoCD app `techx-corp` bật
+> `selfHeal: true` nên sẽ revert. Cordon → delete pod → uncordon là cách duy nhất không
+> đụng vào Git.
 
 **Kiểm:**
 ```bash
@@ -63,7 +89,84 @@ kubectl -n techx-tf3 get pod -l opentelemetry.io/name=load-generator -o wide
 ```
 Nếu ở 1b: cordon 1b rồi xoá pod cho nó nhảy sang AZ khác (như §2.1).
 
-### 2.3. Không phụ thuộc một nguồn bằng chứng duy nhất
+### 2.3. `tolerationSeconds = 300` trùng đúng `duration = PT5M` → SẼ KHÔNG thấy reschedule
+
+Mọi pod trong `techx-tf3` mang toleration mặc định:
+
+```
+node.kubernetes.io/unreachable : NoExecute : tolerationSeconds = 300
+node.kubernetes.io/not-ready   : NoExecute : tolerationSeconds = 300
+```
+
+300s = 5 phút = **đúng bằng `duration` của experiment**. Bộ đếm eviction hết hạn đúng lúc fault
+kết thúc, nên pod trong 1b **sẽ không kịp bị evict và tạo lại ở AZ khác** trong cửa sổ đo.
+
+**Quyết định (30/07/2026): GIỮ `PT5M`.** Directive #17 req#2 đòi *mất một AZ mà luồng ra tiền vẫn
+giữ SLO* — điều đó được chứng minh bằng **replica ở AZ còn lại tiếp tục phục vụ**, không đòi hỏi
+reschedule kịp trong 5 phút. Đổi sang `PT10M` chỉ để xem self-heal sẽ tốn thêm một vòng PR +
+apply, không thêm giá trị cho yêu cầu đang phải chứng minh.
+
+**Bắt buộc viết câu này vào report**, nếu không mentor sẽ hỏi "sao không thấy pod nhảy AZ":
+
+> Trong cửa sổ 5 phút, pod ở AZ bị cô lập **không** bị tạo lại ở AZ khác — đây là hệ quả của
+> `tolerationSeconds=300` trùng với `duration=PT5M`, **không phải** hệ thống mất khả năng
+> tự phục hồi. Điều được chứng minh ở đây là replica ở AZ còn sống hấp thụ được toàn bộ tải.
+
+### 2.4. Prometheus KHÔNG có metric tầng node — lấy từ `kubectl`, đừng chờ panel
+
+Phát hiện 30/07: `netpol/prometheus-access` (thuộc CDO-01) chỉ mở egress 53, 9153 và 443 —
+**thiếu 10250** và thiếu các port metric của app. Hệ quả: **29/34 scrape target DOWN**, mất toàn
+bộ `node_*` / `container_*` / cadvisor trên cả cluster. Metric ứng dụng vẫn đủ vì otel-gateway
+**push OTLP** thẳng vào Prometheus (`--web.enable-otlp-receiver`), không qua scrape.
+
+| Cần chứng minh | Lấy ở đâu |
+|---|---|
+| SLO ứng dụng (request rate, success rate, p95) | ✅ Prometheus — OTLP push, vẫn chạy |
+| Node biến mất / quay lại | ❌ **không có trong Prometheus** → `kubectl get nodes -w`, EC2 console |
+| CPU/memory theo container | ❌ không có → `kubectl top` (metrics-server), hoặc bỏ qua |
+
+### 2.5. `topologySpreadConstraints` KHÔNG giữ pod ở đúng chỗ — nó trôi sau mỗi rollout
+
+Phát hiện 31/07 khi chuẩn bị bắn lại. `frontend` và `frontend-proxy` mỗi cái có **2/2 replica
+nằm trọn trong 1c**, dù cấu hình hoàn toàn đúng và đang chạy live:
+
+```json
+{ "topologyKey": "topology.kubernetes.io/zone",
+  "minDomains": 2, "maxSkew": 1, "whenUnsatisfiable": "DoNotSchedule",
+  "nodeAffinityPolicy": "Honor", "nodeTaintsPolicy": "Honor",
+  "labelSelector": { "matchLabels": { "opentelemetry.io/name": "frontend" } } }
+```
+
+Node arm64+elastic ở 1a (`ip-10-0-5-127`) chỉ mang đúng 2 taint mà frontend đã tolerate,
+nên nó **là domain hợp lệ**. Ràng buộc không hề bị vi phạm.
+
+**Vì sao vẫn lệch:** `topologySpreadConstraints` chỉ được đánh giá **tại thời điểm lập lịch**,
+không có cơ chế kéo pod về sau. `frontend` có 11 ReplicaSet, `frontend-proxy` có 12 — image bump
+liên tục. Trong rolling update, scheduler đếm cả pod cũ, nên pod mới vào 1c vẫn hợp lệ lúc đó;
+pod cũ ở 1a chết đi và không ai bù lại. Cụm hội tụ dần về một AZ **mà không vi phạm gì**.
+
+Đây là kiểu lỗi nguy hiểm nhất cho bài nghiệm thu: đọc manifest thấy đúng, `kubectl describe`
+cũng đúng, chỉ có thực tế là sai. **Không bao giờ kết luận phân bố AZ từ manifest — phải đếm pod.**
+
+**Kiểm (script `-Phase before` đã tự làm, mục "SERVICE CHỈ NẰM TRONG ĐÚNG 1 AZ"):**
+```bash
+kubectl -n techx-tf3 get pods -o wide | grep -E 'frontend|cart|checkout|payment'
+```
+
+**Sửa ngay, không cần PR** (placement không nằm trong Git nên ArgoCD `selfHeal` không revert):
+```bash
+kubectl -n techx-tf3 delete pod <một-pod-của-deployment-bị-dồn>
+```
+Xoá 1 pod là đủ: đặt lại vào AZ đang dồn sẽ cho skew = 2 > maxSkew 1, nên scheduler **buộc**
+phải chọn AZ còn trống. Làm lần lượt từng deployment và kiểm lại sau mỗi lần.
+
+**Giới hạn phải nói thẳng trong report:** cân bằng bằng tay sẽ **trôi lại** sau vài lần image
+bump. Đây là trạng thái đúng *tại thời điểm diễn tập*, không phải bảo đảm vĩnh viễn.
+Hướng xử lý triệt để là **descheduler** với policy `RemovePodsViolatingTopologySpreadConstraint`
+— mở thành `REL-17-07`, chưa làm vì TF3 đang vượt ngân sách và thêm component vào tuần cuối
+là rủi ro không cần thiết.
+
+### 2.6. Không phụ thuộc một nguồn bằng chứng duy nhất
 
 Xếp theo khả năng sống sót — **luôn chạy cả 3**:
 
@@ -271,6 +374,23 @@ FIS `aws:network:disrupt-connectivity` cắt traffic vào/ra AZ đúng như sự
   và đề xuất xử lý riêng**, không giấu.
 - **REL-17-05:** luồng ra tiền vẫn tập trung trên số ít node spot; mất 1 AZ thì sống
   nhưng replica còn lại dồn về một node.
+- **Không quan sát được self-heal trong cửa sổ đo.** `tolerationSeconds=300` trùng đúng
+  `duration=PT5M` — xem §2.3. Bài này chứng minh *replica ở AZ còn lại phục vụ được*,
+  không chứng minh *tạo lại pod kịp trong 5 phút*.
+- **Không có metric tầng node/container.** `netpol/prometheus-access` thiếu egress 10250
+  làm 29/34 scrape target chết (§2.4); bằng chứng node lấy từ `kubectl`/EC2 console.
+  Đã chuyển finding cho CDO-01.
+- **Phân bố AZ được cân bằng bằng tay ngay trước bài, không phải trạng thái tự giữ.**
+  `frontend` và `frontend-proxy` từng dồn 2/2 vào 1c do rollout drift (§2.5); đã rải lại
+  1a+1c trước khi bắn. Sau vài lần image bump nó sẽ trôi lại. Fix triệt để = descheduler,
+  mở thành `REL-17-07`.
+- **8 workload nằm trọn trong 1b và sẽ chết trong lúc bắn** (đo 30/07): `ad`,
+  `recommendation`, `image-provider`, `fraud-detection`, `llm`, `jaeger`, `opensearch`,
+  `aiops-engine`. Đây là **kết quả dự kiến, không phải sự cố**:
+  `ad` + `recommendation` chết chính là bài demo sống của REL-17-02 (deadline 300ms/500ms
+  + fallback → frontend vẫn render); `fraud-detection` là consumer Kafka async nên đơn hàng
+  không mất; `jaeger`/`opensearch` mất trace/log trong 5 phút đó. **Không** service nào
+  thuộc luồng browse → cart → checkout nằm trọn trong 1b.
 
 ## 8. Việc phát sinh sau drill
 | # | Việc | Chủ | Hạn |

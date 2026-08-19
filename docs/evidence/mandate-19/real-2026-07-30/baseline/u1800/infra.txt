@@ -1,0 +1,47 @@
+### node_count
+9
+### node_set_sha256
+54755c311f1a64b9fc5db98ead3f8bb2051f150ab9f8f6da2b7bd7561e7f22f1  -
+### nodes
+ip-10-0-24-177.ap-southeast-1.compute.internal   Ready   <none>   8d     v1.35.6-eks-8f14419                                     t3.large
+ip-10-0-26-153.ap-southeast-1.compute.internal   Ready   <none>   16d    v1.35.6-eks-8f14419                                     t3.large
+ip-10-0-30-157.ap-southeast-1.compute.internal   Ready   <none>   61m    v1.35.6-eks-8f14419   flash-sale-spot-arm64             m7gd.large
+ip-10-0-38-176.ap-southeast-1.compute.internal   Ready   <none>   107m   v1.35.6-eks-8f14419   flash-sale-spot-arm64             m7gd.large
+ip-10-0-4-166.ap-southeast-1.compute.internal    Ready   <none>   15d    v1.35.6-eks-8f14419                                     t3.medium
+ip-10-0-43-83.ap-southeast-1.compute.internal    Ready   <none>   16d    v1.35.6-eks-8f14419                                     t3.large
+ip-10-0-5-207.ap-southeast-1.compute.internal    Ready   <none>   46m    v1.35.6-eks-8f14419   elastic-ondemand-fallback-arm64   c6g.large
+ip-10-0-7-244.ap-southeast-1.compute.internal    Ready   <none>   46m    v1.35.6-eks-8f14419   elastic-ondemand-fallback-arm64   c6g.large
+ip-10-0-8-134.ap-southeast-1.compute.internal    Ready   <none>   16d    v1.35.6-eks-8f14419                                     t3.large
+### hpa
+NAME                  REFERENCE                    TARGETS         MINPODS   MAXPODS   REPLICAS   AGE
+ad-hpa                Deployment/ad                cpu: 19%/65%    1         4         1          16d
+cart-hpa              Deployment/cart              cpu: 65%/65%    2         6         3          16d
+checkout-hpa          Rollout/checkout-rollout     cpu: 138%/65%   2         8         8          16d
+currency-hpa          Deployment/currency          cpu: 13%/65%    2         6         2          16d
+frontend-hpa          Deployment/frontend          cpu: 152%/65%   2         8         8          16d
+frontend-proxy-hpa    Deployment/frontend-proxy    cpu: 86%/65%    2         8         8          16d
+product-catalog-hpa   Deployment/product-catalog   cpu: 74%/65%    2         8         8          16d
+product-reviews-hpa   Deployment/product-reviews   cpu: 63%/75%    2         6         3          16d
+recommendation-hpa    Deployment/recommendation    cpu: 83%/65%    1         4         4          16d
+### top_nodes
+NAME                                             CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+ip-10-0-24-177.ap-southeast-1.compute.internal   939m         48%      4686Mi          66%         
+ip-10-0-26-153.ap-southeast-1.compute.internal   458m         23%      3770Mi          53%         
+ip-10-0-30-157.ap-southeast-1.compute.internal   919m         47%      1518Mi          21%         
+ip-10-0-38-176.ap-southeast-1.compute.internal   827m         42%      1486Mi          20%         
+ip-10-0-4-166.ap-southeast-1.compute.internal    23m          1%       951Mi           28%         
+ip-10-0-43-83.ap-southeast-1.compute.internal    266m         13%      2940Mi          41%         
+ip-10-0-5-207.ap-southeast-1.compute.internal    442m         22%      883Mi           28%         
+ip-10-0-7-244.ap-southeast-1.compute.internal    493m         25%      1050Mi          33%         
+ip-10-0-8-134.ap-southeast-1.compute.internal    120m         6%       2359Mi          33%         
+### restarts_oom
+accounting-58499b5fb-gzq5v                       1/1   Running     3 (65m ago)     33h
+checkout-rollout-57fd56d4-r5xwn                  1/1   Running     1 (3m36s ago)   107m
+grafana-575c7b5476-zlggq                         4/4   Running     1 (36h ago)     41h
+### pending
+checkout-rollout-57fd56d4-5vkk8    0/1   Pending   0     13m
+frontend-68c64949f5-2ktt8          0/1   Pending   0     23m
+frontend-68c64949f5-lq8dl          0/1   Pending   0     39m
+frontend-68c64949f5-zmhh6          0/1   Pending   0     39m
+frontend-proxy-546b4cd898-cbh2c    0/1   Pending   0     6m38s
+product-catalog-7f948c89c5-m925r   0/1   Pending   0     6m38s

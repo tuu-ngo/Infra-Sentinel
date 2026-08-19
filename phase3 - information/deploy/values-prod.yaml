@@ -213,9 +213,14 @@ components:
       periodSeconds: 20
       timeoutSeconds: 3
       failureThreshold: 3
+    # Mandate-19 "resource request sát usage" — chiều NGƯỢC lại: ad giữ chỗ 100m CPU
+    # nhưng ở stage 1400 user chỉ dùng 17-21m và throttle 0%. Request là thứ scheduler
+    # dùng để chia node, nên 80m thừa/pod là 80m mà email/accounting KHÔNG xin được
+    # trên chính node đó. Hạ 100m -> 30m (vẫn trên đỉnh usage đo được) để trả chỗ cho
+    # hai service đang cạn. Limit giữ 500m: ad vẫn được burst, chỉ thôi giữ chỗ.
     resources:
       requests:
-        cpu: 100m
+        cpu: 30m
         memory: 256Mi
       limits:
         cpu: 500m
@@ -276,7 +281,7 @@ components:
       # build từ code fallback + postcss fix). Re-apply PR #448 - từng merge rồi bị revert (#450)
       # như biện pháp phòng ngừa trong lúc ổn định PM-129 (bug tooling trace-provenance đa-arch,
       # KHÔNG phải lỗi supply-chain); image đã qua Trivy + Cosign. Đừng revert lại.
-      digest: sha256:eff696881cff97787df624be9c815f844b414ab7b08be998020f0ff81b2c9793
+      digest: sha256:0e9997d6e40bacdd68a3aac7f7df87a142fbd4e2beb3ef84741297b736fbc042
     # REL-03: tcpSocket probe (an toan - chi check port mo, khong false-fail vi thieu
     # grpc-health/sai HTTP path). liveness long hon readiness.
     readinessProbe:
@@ -294,6 +299,49 @@ components:
       timeoutSeconds: 3
       failureThreshold: 3
     replicas: 2        # web khách thấy, traffic HTTP cao nhất
+    # === Mandate-19: deadline gRPC 500ms là nguồn TOÀN BỘ lỗi browse ===
+    # Đo 30/07 stage 1400 user, log frontend:
+    #   "Error: 4 DEADLINE_EXCEEDED: Deadline exceeded after 0.500s" -> product-catalog
+    # Hai deadline này (REL-17-02, Mandate #17) đúng về nguyên tắc — gRPC-js KHÔNG có
+    # deadline mặc định nên upstream treo sẽ giữ mọi request browse. Vấn đề là NGƯỠNG:
+    # 500ms sát đuôi phân phối. product-catalog p95 server-side chỉ 6,9ms, nhưng đuôi
+    # dưới tải vượt 500ms và KHÔNG có retry -> DEADLINE_EXCEEDED thành lỗi cứng:
+    #   311 x HTTP 500 trên /api/products/[id]  +  431 x HTTP 503 trên
+    #   /api/product-reviews/[id] = 742 lỗi, đúng phần đốt browse SLO xuống 99,06%.
+    # Cả hai route nằm trong mẫu số SLI browse (scripts/mandate-19/sli_queries.json).
+    #
+    # 500 -> 1200ms: vẫn fail-fast và vẫn chặn treo vô hạn (mục tiêu gốc của REL-17-02),
+    # nhưng không còn cắt vào đuôi bình thường. An toàn với cổng browse p95 < 1000ms vì
+    # p95 đo được chỉ 110ms ở stage này — chỉ phần đuôi bị ảnh hưởng, và đuôi chậm vẫn
+    # tốt hơn đuôi lỗi. PRODUCT_AI_DEADLINE_MS (15s, đường Bedrock) giữ nguyên.
+    #
+    # === Mandate-19: chuyển hop gRPC sang headless + round_robin ===
+    # Vì sao (đo 30/07 `kubectl top pod`, product-catalog đang ở 11 replica):
+    #     xxhsp 353m · cw8nx 136m · pzcxg 11m · TÁM pod còn lại 1-2m
+    # ClusterIP trả về 1 VIP, gRPC giữ 1 kết nối TCP dài hạn, kube-proxy ghim kết
+    # nối đó vào 1 pod. Pod do HPA sinh ra SAU khi kết nối đã dựng thì không bao
+    # giờ nhận traffic. Đó là lý do nới maxReplicas ở PR #649 không nâng nổi trần.
+    # Đối chứng: frontend trải đều 123-138m vì hop proxy->frontend đã dùng headless.
+    # Cần CẢ HAI: headless (DNS trả mọi pod IP) + round_robin phía client
+    # (src/frontend/gateways/rpc/grpcChannel.ts). Thiếu một cái là vô tác dụng.
+    # Rollback = trả các giá trị dưới về tên service cũ; Service ClusterIP cũ vẫn còn.
+    envOverrides:
+      - name: PRODUCT_CATALOG_ADDR
+        value: product-catalog-headless:8080
+      - name: PRODUCT_REVIEWS_ADDR
+        value: product-reviews-headless:3551
+      - name: RECOMMENDATION_ADDR
+        value: recommendation-headless:8080
+      - name: CART_ADDR
+        value: cart-headless:8080
+      - name: CURRENCY_ADDR
+        value: currency-headless:8080
+      - name: AD_ADDR
+        value: ad-headless:8080
+      - name: PRODUCT_CATALOG_DEADLINE_MS
+        value: "1200"
+      - name: PRODUCT_REVIEWS_DEADLINE_MS
+        value: "1200"
     resources:
       requests:
         # PM-152 measured ~218m CPU/pod at the failing stage. A 200m request gives
@@ -449,8 +497,8 @@ components:
       failureThreshold: 3
     replicas: 2
     imageOverride: # CDO02 fix HealthCheckService.cs - xem comment imageOverride đầu components:
-      digest: sha256:b6c7b60dec137dfe54f7fdc82b340421661aedbeed6ed34cd55f2ae29916508a
-      tag: 3252f28-29655310361-cart
+      digest: sha256:cbc62a4f46d9da3e30ab69786030bafe8eb7abebe36395ecde949bd10780db5e
+      tag: 8e40f3e-30570814403-cart
     resources:
       requests:
         cpu: 100m
@@ -499,6 +547,15 @@ components:
     # Ready -> canary dung khung, KHONG outage. Consumer (accounting + fraud-detection) doi
     # sang MSK o PR SAU, chi khi kafka cu LAG=0 (Earliest -> an sach backlog tu day).
     envOverrides:
+      # Mandate-19: checkout gọi email qua HTTP với connection pool của Go, mà pool
+      # tới một ClusterIP sẽ ghim vào một pod email. Đó là cơ chế đã tạo hàng đợi
+      # 15s (span client `POST` p95 = 15000ms trong khi span server email chỉ 391ms)
+      # -> 504 trên 3.432/5.431 đơn ở stage 1400 user. Nâng replica email ở PR #656
+      # chỉ có tác dụng nếu traffic TỚI ĐƯỢC các replica đó.
+      # Go phân giải DNS cho mỗi kết nối mới nên trỏ vào headless là đủ — khác gRPC,
+      # không phải sửa code checkout.
+      - name: EMAIL_ADDR
+        value: http://email-headless:8080
       - name: KAFKA_ADDR
         value: b-1.techxtf3kafka.4xa0zb.c6.kafka.ap-southeast-1.amazonaws.com:9096,b-2.techxtf3kafka.4xa0zb.c6.kafka.ap-southeast-1.amazonaws.com:9096,b-3.techxtf3kafka.4xa0zb.c6.kafka.ap-southeast-1.amazonaws.com:9096
       - name: KAFKA_SECURITY_PROTOCOL
@@ -927,11 +984,15 @@ components:
       digest: sha256:9cd92fccd5050dbb696beb6a205fd73290a7de311db585cb993bcc35a7c03a35
       tag: 43dcf62-29569108433-recommendation
     resources:
+      # Mandate-19 (đo 30/07, stage 1400 user): recommendation throttle 18,1%, usage
+      # thật 171m > request 100m. GET /api/recommendations nằm TRONG mẫu số SLI browse
+      # (xem scripts/mandate-19/sli_queries.json) nên throttle ở đây đốt trực tiếp
+      # browse p95. request 100m -> 150m (sát usage), limit 500m -> 700m.
       requests:
-        cpu: 100m
+        cpu: 150m
         memory: 64Mi
       limits:
-        cpu: 500m
+        cpu: 700m
         memory: 500Mi
     readinessProbe:
       grpc:
@@ -953,12 +1014,18 @@ components:
     imageOverride: # CDO02 fix Consumer.cs - xem comment imageOverride đầu components:
       digest: sha256:32aeb5e03cd55a4f6a9927b950d019393e39e480541877471e622f002c3107f7
       tag: e43df42-29655320898-accounting
+    # Mandate-19 (đo 30/07, stage 1400 user): accounting bị CPU-throttle **86,1%** —
+    # cao nhất cụm. Nó là consumer MSK duy nhất ghi đơn vào RDS, nên throttle ở đây
+    # nghĩa là đơn đã đặt xong vẫn nằm chờ trong topic. Usage thật 166-171m mà limit
+    # chỉ 200m => cứ mỗi chu kỳ CFS nó bị treo 86% thời gian.
+    # request 50m -> 150m (sát usage thật, để scheduler và HPA thấy đúng khối lượng),
+    # limit 200m -> 600m (còn trần, nhưng đủ để tiêu backlog thay vì tích luỹ).
     resources:
       requests:
-        cpu: 50m
+        cpu: 150m
         memory: 150Mi
       limits:
-        cpu: 200m
+        cpu: 600m
         memory: 350Mi
     # Mandate #8 buoc 2 (cutover Postgres -> RDS, runbook §5 buoc 4): DB_CONNECTION_STRING -> RDS
     # qua secret techx-tf3-postgres-conn (format .NET/Npgsql, SSL Mode=Require). accounting la
@@ -988,6 +1055,24 @@ components:
             name: techx-tf3-kafka-scram
             key: password
   email:
+    # === Mandate-19: NÚT THẮT THÔNG LƯỢNG CỦA TOÀN HỆ (đo 30/07/2026) ===
+    # email quyết định trần checkout, không phải checkout. Ở stage 1400 user:
+    #   span CLIENT `POST` checkout -> email  p95 = 15000 ms  (= route timeout Envoy)
+    #   span SERVER email                     p95 =   391 ms
+    # Chênh 14,6s là XẾP HÀNG, không phải xử lý. checkout gọi đồng bộ
+    # (src/checkout/main.go:473) nên hàng đợi này ăn trọn budget request -> 504:
+    # 3.432/5.431 đơn hỏng, 82% toàn bộ lỗi client của stage.
+    #
+    # 1 replica Ruby/Sinatra+Puma (GIL) với limit 100m = 0,1 core không kham nổi
+    # 14,7 rps x 391 ms (~5,8 request đồng thời). Chuyển sang HPA 2..8
+    # (gitops/infrastructure/hpa-hotpath.yaml, email-hpa) + nới CPU.
+    #
+    # Không thêm node: email KHÔNG bị ghim tầng elastic (vắng mặt trong
+    # values-mandate13.yaml) nên nó nằm trên node managed t3.large — nhóm node
+    # đang rảnh nhất cụm (~20-30% CPU thật). Đây đúng là "nhiều request hơn trên
+    # cùng số node".
+    replicasManagedExternally: true
+    replicas: 2
     imageOverride:
       digest: sha256:afdbc98c923cff6e7652d84bee0bea0e658dab0bad99299ae8a9e423969d82f4
     # REL-03: tcpSocket probe (an toan - chi check port mo, khong false-fail vi thieu
@@ -1008,11 +1093,16 @@ components:
       failureThreshold: 3
     resources:
       requests:
-        cpu: 25m
-        memory: 64Mi
+        # 25m -> 75m: request cũ thấp hơn usage thật (đo 100m ở 1800 user) nên HPA
+        # tính utilization sai lệch VÀ scheduler đặt pod như thể nó gần như miễn phí.
+        cpu: 75m
+        memory: 96Mi
       limits:
-        cpu: 100m
-        memory: 100Mi
+        # 100m -> 600m: limit cũ CHÍNH LÀ trần. Ruby MRI có GIL, một pod dùng được
+        # tối đa ~1 core; 0,1 core biến mọi burst thành hàng đợi. 600m cho pod đủ
+        # sức nuốt burst mà vẫn có trần chống pod lỗi ăn hết node.
+        cpu: 600m
+        memory: 256Mi
   fraud-detection:
     imageOverride:
       digest: sha256:45fc3b08aa4a1ef057866565970aaac5672d4a0c6b6a7dd91c1ec0ff65517bb2
@@ -1449,17 +1539,40 @@ components:
       failureThreshold: 3
     replicas: 2        # cổng vào DUY NHẤT (Envoy) — SPOF của toàn hệ thống
     imageOverride: # mandate-01: gỡ route Envoy - xem comment imageOverride đầu components:
-      digest: sha256:c0d5128e0fa7de17e9284ecc9776f85daadbde8d04d42a1b51347859981c3f07
-      tag: 8f38296-30506402359-frontend-proxy
+      digest: sha256:fdbed036884de2f25af4a6e389cab195ad32457899bbcc92b8167e6d3c81cca3
+      tag: 134e95d-30527156683-frontend-proxy
     # Mandate #19: browse shedding is enforced after staged route-validation
     # gates. Protected routes remain non-binding via the global fallback bucket.
+    #
+    # === HIỆU CHỈNH BUDGET (30/07/2026) — sửa regression do chính PR #649 ===
+    # Bucket này là PER-REPLICA (in-process token bucket của Envoy), nên budget
+    # TỔNG = tokens_per_fill x số replica frontend-proxy. PR #649 nới maxReplicas
+    # của proxy 8 -> 12 để nâng trần, và vô tình nâng luôn budget shed 400 -> 600,
+    # tức làm YẾU lớp bảo vệ đúng lúc tải cao nhất. Đo được trực tiếp ở stage
+    # 2400 user (docs/evidence/mandate-19/real-2026-07-30/):
+    #
+    #   arm        proxy max   shedable offered   429      hệ quả
+    #   baseline   8           110,7 rps          3.641    shed đúng, protected 0x429
+    #   tuned      12          112,8 rps              0    KHÔNG shed -> 1.713 x HTTP 500
+    #
+    # Cùng một mức tải, cùng hạ tầng: bản có nhiều replica hơn lại mất khả năng
+    # xuống mềm và chuyển sang trả lỗi 5xx. Đó là chiều ngược với YC#4.
+    #
+    # 50 -> 33 để budget tổng ở mức scale-out tối đa quay về ĐÚNG điểm bảo vệ đã
+    # kiểm chứng bằng thực nghiệm: 12 x 33 = 396 ~ 8 x 50 = 400 của arm baseline.
+    # max_tokens giữ tỉ lệ burst 2x: 100 -> 66.
+    #
+    # ⚠️ Hạn chế đã biết: budget vẫn trôi theo số replica. Cách sửa đúng về kiến
+    # trúc là bucket dùng chung toàn cluster (`local_cluster_rate_limit` của Envoy),
+    # nhưng nó nằm trong envoy.tmpl.yaml — tức trong IMAGE, phải rebuild. Ghi lại ở
+    # ADR 0011 làm việc còn mở, không giấu.
     envOverrides:
       - name: FRONTEND_HOST
         value: frontend-headless
       - name: BROWSE_RATE_LIMIT_MAX_TOKENS
-        value: "100"
+        value: "66"
       - name: BROWSE_RATE_LIMIT_TOKENS_PER_FILL
-        value: "50"
+        value: "33"
       - name: BROWSE_RATE_LIMIT_FILL_INTERVAL
         value: "1s"
       - name: BROWSE_RATE_LIMIT_ENABLED_PERCENT

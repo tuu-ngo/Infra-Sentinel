@@ -9,3 +9,6 @@
 .gitleaksignore text eol=lf
 *.tf text eol=lf
 *.hcl text eol=lf
+# The old README was UTF-16; without this git sees NUL bytes and calls .md
+# binary, so a README rewrite would show as "Binary file not shown" in review.
+*.md diff

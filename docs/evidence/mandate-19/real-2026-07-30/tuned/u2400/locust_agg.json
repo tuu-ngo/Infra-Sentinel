@@ -1,0 +1,8 @@
+{
+ "rps": 417.50358662622705,
+ "requests": 175412,
+ "failures": 14562,
+ "p95_client_ms": "8300",
+ "p99_client_ms": "15000",
+ "failure_pct": 8.3016
+}

@@ -1,0 +1,29 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,/api/cart,HTTPError('503 Server Error: Service Unavailable for url: /api/cart'),8,2026-07-30T10:00:01Z,2026-07-30T10:04:58Z
+POST,/api/product-ask-ai-assistant/[id],HTTPError('504 Server Error: Gateway Timeout for url: /api/product-ask-ai-assistant/[id]'),28,2026-07-30T10:00:12Z,2026-07-30T10:04:21Z
+GET,/api/product-reviews/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/product-reviews/[id]'),519,2026-07-30T09:59:48Z,2026-07-30T10:06:04Z
+GET,/api/data/,HTTPError('504 Server Error: Gateway Timeout for url: /api/data/'),68,2026-07-30T10:03:16Z,2026-07-30T10:03:47Z
+GET,/api/recommendations,HTTPError('429 Client Error: Too Many Requests for url: /api/recommendations'),32,2026-07-30T10:00:21Z,2026-07-30T10:03:22Z
+POST,/api/checkout,ChunkedEncodingError(ProtocolError('Response ended prematurely')),1,2026-07-30T10:03:17Z,2026-07-30T10:03:17Z
+POST,/api/cart,HTTPError('504 Server Error: Gateway Timeout for url: /api/cart'),52,2026-07-30T10:03:16Z,2026-07-30T10:03:47Z
+GET,/,HTTPError('429 Client Error: Too Many Requests for url: /'),10,2026-07-30T10:00:50Z,2026-07-30T10:03:00Z
+GET,/api/products/[id],HTTPError('504 Server Error: Gateway Timeout for url: /api/products/[id]'),213,2026-07-30T10:03:16Z,2026-07-30T10:03:48Z
+GET,/api/data/,HTTPError('429 Client Error: Too Many Requests for url: /api/data/'),94,2026-07-30T10:00:21Z,2026-07-30T10:03:23Z
+GET,/api/products/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/products/[id]'),1361,2026-07-30T10:00:01Z,2026-07-30T10:06:04Z
+GET,/,HTTPError('503 Server Error: Service Unavailable for url: /'),1,2026-07-30T10:01:18Z,2026-07-30T10:01:18Z
+GET,/api/recommendations,HTTPError('504 Server Error: Gateway Timeout for url: /api/recommendations'),40,2026-07-30T10:03:16Z,2026-07-30T10:03:48Z
+GET,/api/cart,HTTPError('504 Server Error: Gateway Timeout for url: /api/cart'),39,2026-07-30T10:03:16Z,2026-07-30T10:03:47Z
+GET,/api/data/,HTTPError('503 Server Error: Service Unavailable for url: /api/data/'),4,2026-07-30T09:59:48Z,2026-07-30T10:02:55Z
+POST,/api/product-ask-ai-assistant/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/product-ask-ai-assistant/[id]'),7,2026-07-30T10:00:45Z,2026-07-30T10:05:39Z
+POST,/api/product-ask-ai-assistant/[id],HTTPError('429 Client Error: Too Many Requests for url: /api/product-ask-ai-assistant/[id]'),19,2026-07-30T10:00:21Z,2026-07-30T10:03:00Z
+GET,/api/product-reviews/[id],HTTPError('429 Client Error: Too Many Requests for url: /api/product-reviews/[id]'),31,2026-07-30T10:00:21Z,2026-07-30T10:02:56Z
+GET,/api/product-reviews/[id],HTTPError('504 Server Error: Gateway Timeout for url: /api/product-reviews/[id]'),22,2026-07-30T10:03:16Z,2026-07-30T10:03:47Z
+GET,/api/products/[id],HTTPError('503 Server Error: Service Unavailable for url: /api/products/[id]'),12,2026-07-30T10:00:01Z,2026-07-30T10:04:09Z
+POST,/api/checkout,HTTPError('504 Server Error: Gateway Timeout for url: /api/checkout'),171,2026-07-30T10:00:26Z,2026-07-30T10:04:44Z
+GET,/api/recommendations,HTTPError('503 Server Error: Service Unavailable for url: /api/recommendations'),3,2026-07-30T10:00:11Z,2026-07-30T10:03:41Z
+GET,/api/product-reviews/[id],HTTPError('503 Server Error: Service Unavailable for url: /api/product-reviews/[id]'),2410,2026-07-30T09:59:49Z,2026-07-30T10:06:04Z
+GET,/api/cart,HTTPError('503 Server Error: Service Unavailable for url: /api/cart'),1,2026-07-30T10:02:55Z,2026-07-30T10:02:55Z
+POST,/api/product-ask-ai-assistant/[id],HTTPError('503 Server Error: Service Unavailable for url: /api/product-ask-ai-assistant/[id]'),1,2026-07-30T10:03:50Z,2026-07-30T10:03:50Z
+POST,/api/checkout,HTTPError('503 Server Error: Service Unavailable for url: /api/checkout'),1,2026-07-30T10:05:52Z,2026-07-30T10:05:52Z
+GET,/,HTTPError('504 Server Error: Gateway Timeout for url: /'),8,2026-07-30T10:03:22Z,2026-07-30T10:03:43Z
+POST,/api/checkout,HTTPError('500 Server Error: Internal Server Error for url: /api/checkout'),817,2026-07-30T09:59:57Z,2026-07-30T10:06:04Z

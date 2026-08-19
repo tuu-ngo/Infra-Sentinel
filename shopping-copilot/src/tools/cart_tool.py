@@ -12,6 +12,9 @@ from src.guardrails.confirmation import request_confirmation
 
 from src.tools.service_config import CART_ADDR, CATALOG_ADDR
 
+CATALOG_TIMEOUT_SECONDS = 1.5
+CART_TIMEOUT_SECONDS = 3.0
+
 
 @tool
 def check_cart_item_tool(user_id: str, product_id: str) -> str:
@@ -84,7 +87,7 @@ def add_to_cart_tool(user_id: str, product_id: str, quantity: int) -> str:
             cat_channel = grpc.insecure_channel(CATALOG_ADDR)
             cat_stub = demo_pb2_grpc.ProductCatalogServiceStub(cat_channel)
             p_req = demo_pb2.GetProductRequest(id=product_id)
-            p_res = cat_stub.GetProduct(p_req)
+            p_res = cat_stub.GetProduct(p_req, timeout=CATALOG_TIMEOUT_SECONDS)
             if p_res.name:
                 product_name = p_res.name
             cat_channel.close()
@@ -118,7 +121,7 @@ def add_to_cart_tool(user_id: str, product_id: str, quantity: int) -> str:
     try:
         cart_item = demo_pb2.CartItem(product_id=product_id, quantity=int(quantity))
         request = demo_pb2.AddItemRequest(user_id=user_id, item=cart_item)
-        stub.AddItem(request)
+        stub.AddItem(request, timeout=CART_TIMEOUT_SECONDS)
         return json.dumps({
             "status": "success",
             "product_id": product_id,

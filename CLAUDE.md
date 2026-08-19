@@ -5,9 +5,16 @@ File này được Claude Code tự động đọc ở đầu mỗi phiên làm 
 là để **không phải giải thích lại bối cảnh dự án từ đầu mỗi lần mở chat mới**. Giữ file này
 cập nhật; nó có giá trị bằng đúng mức nó phản ánh đúng thực tế hiện tại.
 
-> **Cập nhật gần nhất: 29/07/2026** — product-reviews Sprint 3 Release A (Tier-2 PostgreSQL fallback)
-> đã deploy production, zero downtime; xem mục "AI trong sản phẩm". ⚠️ Mục "Truy cập cluster" đã sửa:
-> **`AWS_PROFILE=techx-new` không còn tồn tại**.
+> **Cập nhật gần nhất: 30/07/2026** — **Mandate #19 đóng hồ sơ ở 3/4 YC**: trần thật là
+> **1000 user / 202,4 RPS** (~3× con số cũ đã bị loại), tuned3 đạt **442,3 RPS @2400u (+29%) trên cùng
+> 9 node**, xuống mềm ở 3× trần giữ luồng tiền 99,95%. Trần cuối cùng **là hạ tầng chứ không phải phần
+> mềm** — 4 node `t3.large` thiếu label nên vĩnh viễn không nhận pod hot-path. Kèm **postmortem 0017**
+> (`product-catalog` về 0 replica, HPA không cứu được, 42 phút 500) và cảnh báo **`~/.kube/config`
+> hardcode profile readonly**. Xem mục "Mandates".
+>
+> (29/07/2026: product-reviews Sprint 3 Release A (Tier-2 PostgreSQL fallback) đã deploy production,
+> zero downtime; xem mục "AI trong sản phẩm". ⚠️ Mục "Truy cập cluster" đã sửa:
+> **`AWS_PROFILE=techx-new` không còn tồn tại**.)
 >
 > (23/07/2026: Mandate #2 + #3 demo PASS; AI Bedrock live cho product-reviews;
 > **Mandate #8 HOÀN TẤT + §8 XONG — 3/3 store lên managed, đã TẮT 3 component tự host (PR #324):
@@ -182,6 +189,51 @@ Auditability là trụ chung. Nếu người dùng nói "trụ của mình"/"tea
     `kubectl scale=0` GIỮ được cho 1 deployment, phải thêm nó vào `ignoreDifferences /spec/replicas`
     của Application `techx-corp` (`gitops/apps/techx-corp.yaml`) — không thì selfHeal + app-of-apps
     (`techx-corp-bootstrap`) revert. `replicas: 0` trong values KHÔNG dùng (template `default` coi 0 là rỗng).
+- **Mandate #19 (biết trần & nâng trần bằng hiệu suất)** — 🟢🟢🟢🟡 **3/4 YC** (CDO01, đo 30/07).
+  Báo cáo đầy đủ `docs/mandate-19-throughput-ceiling-report.md`, **bản tóm tắt có ảnh/video nhúng**
+  `docs/mandate-19-nghiem-thu.md`, ADR `docs/adr/0011-mandate-19-throughput-ceiling-load-shedding.md`,
+  evidence `docs/evidence/mandate-19/real-2026-07-30/`. PR #649/#651/#656/#658/#660/#664 (code+tuning),
+  #662 (báo cáo+ADR), #671 (tóm tắt).
+  - **Trần thật = 1000 user / 202,4 RPS** (~3× con số cũ 328u/174,75 RPS đã bị loại — bài đo cũ để node
+    trôi 9→10→11 và dùng ngưỡng `checkout p99 ≤ 300ms` **không tồn tại trong `SLO.md`**). **Checkout gãy
+    trước browse**, không phải ngược lại: 99,89% → 29,21% chỉ trong một nấc tải.
+  - **⚠️ RPS tuyệt đối phải đọc từ CSV Locust, KHÔNG từ Prometheus/span metrics.** `otel-gateway`
+    memory_limiter drop span dưới tải (`dropped_items=8645`) → throughput báo thấp giả. Tỉ lệ (%) đọc
+    Prometheus vẫn đúng (tử/mẫu cùng co). Dùng `scripts/mandate-19/client_truth.py`.
+  - **Ba nút thắt, hai không phải CPU:** (1) `email` nghẽn hàng đợi — client span 15000ms vs server span
+    391ms; checkout gọi đồng bộ ở `src/checkout/main.go:473`; 82% tổng lỗi. (2) **gRPC ghim kết nối** —
+    ClusterIP trả 1 VIP + `pick_first` mặc định ⇒ 11 replica mà chỉ 2 nhận tải (`353m·136m·11m·1m×8`).
+    Sửa cần **CẢ HAI**: Service headless (`gitops/infrastructure/backend-headless-services.yaml`) **VÀ**
+    `round_robin` trong `grpcChannel.ts`. (3) deadline 500ms quá nhạy (p95 thật 6,9ms) → 1200ms.
+  - **YC#2 chưa qua**: tham số (minReplicas, HPA target 65%, deadline) vẫn hiệu chỉnh cho chế độ **cũ**;
+    lỗi đến theo cụm ~8s **ngay trước** mỗi lần HPA scale-up ⇒ nợ hiệu chỉnh, không phải hết năng lực.
+    Dù vậy tuned3 đạt **442,3 RPS @2400u (+29%)** trên **cùng 9 node**, checkout u1800 7,12%→99,18%.
+  - **🔴 Trần cuối cùng là HẠ TẦNG, không phải phần mềm:** `values-mandate13.yaml` ghim 10 workload hot-path
+    bằng `nodeSelector {techx.io/workload: elastic, techx.io/arch: arm64}`; **4 node `t3.large` không có
+    label đó nên vĩnh viễn không nhận được pod hot-path** → 8 vCPU đã trả tiền nằm không trong khi node
+    elastic chạy 99%. Tầng elastic arm64 có **trần cứng 4 node** (`flash-sale-spot-arm64` `limits.nodes:2`
+    + `elastic-ondemand-fallback-arm64` `limits.nodes:2`) — CDO01 đặt cố ý để giữ chi phí.
+    ⚠️ **Đừng đọc nhầm log Karpenter** (tôi đã nhầm một lần): `label "techx.io/arch" does not have known
+    values` là lý do từ chối của pool **amd64**, KHÔNG phải pool arm64 — Karpenter in lý do của từng
+    NodePool rồi gộp một khối. Hai pool arm64 **đã có** `techx.io/arch` ở `template.metadata.labels`
+    (`spot-nodepool.yaml:88`, `ondemand-fallback-nodepool.yaml:92`) và Karpenter đưa static label đó vào
+    requirements của node sẽ tạo, không cần lặp ở `requirements`. Lý do thật là `limits.nodes` đã cạn.
+  - **YC#4 đạt tốt nhất:** 597 rps ≈ 3× trần qua CloudFront công khai, browse hy sinh 104k request
+    (429), **cart+checkout 99,95%**. Envoy `browse_rate_limiter.rate_limited=19.539` vs
+    `local_rate_limiter.rate_limited=0/148.919`. Demo 1 lệnh: `scripts/mandate-19/shed_demo.sh`.
+    ⚠️ `local_ratelimit` là token bucket **mỗi replica** ⇒ ngân sách tổng = `tokens_per_fill × số replica`;
+    nâng maxReplicas proxy 8→12 đã vô hiệu hoá shedding một lần (PR #649), phải hiệu chỉnh lại ở #658.
+    ⚠️ Filter này **không** phát header `x-envoy-ratelimited` (chỉ global ratelimit mới có).
+  - **⚠️ Khoảng trống quan sát đã phát hiện:** cAdvisor chết 7/8 node (`context deadline exceeded` port
+    10250) ⇒ panel "Pod count" Grafana **vĩnh viễn `No data`** — không phải bằng chứng pod không scale.
+    kube-state-metrics chưa cài. SLI checkout từng mù (8.875/8.877 đơn lỗi mà dashboard vẫn 100%) — fix ở #649.
+  - **Postmortem 0017** (`docs/postmortem/0017-product-catalog-replicas-zero-hpa-cannot-recover.md`):
+    `product-catalog` về 0 replica → `/api/products` 500 trong 42 phút. **HPA KHÔNG scale được từ 0**
+    (coi 0 = "tắt autoscaling"), và chart bỏ hẳn field `replicas` khi `replicasManagedExternally: true`
+    ⇒ **GitOps cũng không có đòn bẩy**. 10 service đang bật cờ này đều dính cùng lỗ hổng.
+    **⚠️ `~/.kube/config` hardcode `AWS_PROFILE: nvtank-readonly` trong `exec.env`** — `export AWS_PROFILE=acc-moi`
+    **KHÔNG thắng được**; thao tác ghi phải dùng:
+    `kubectl ... --token="$(AWS_PROFILE=acc-moi aws eks get-token --cluster-name techx-corp-tf3 --region ap-southeast-1 --output json | python3 -c 'import json,sys;print(json.load(sys.stdin)["status"]["token"])')"`
 
 ### AI trong sản phẩm (AIO02) — Bedrock đã LIVE
 - **`product-reviews` giờ dùng AWS Bedrock thật** (không còn mock): `LLM_PROVIDER=bedrock`,

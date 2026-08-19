@@ -24,6 +24,9 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: product-reviews
+        - podSelector:
+            matchLabels:
+              app: shopping-copilot
       ports:
         - { protocol: TCP, port: 8080 }
   egress:

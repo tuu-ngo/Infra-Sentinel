@@ -1,0 +1,272 @@
+{
+ "arm": "tuned",
+ "date": "2026-07-30",
+ "generator": "ngoài cluster, qua CloudFront",
+ "slo_source": "Prometheus, query lấy từ slo-dashboard.json, exact window 5 phút",
+ "stages": [
+  {
+   "users": 200,
+   "sli_verdict": "PASS",
+   "gates": {
+    "browse_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "browse_p95<1000ms": {
+     "pass": true,
+     "value": 44.4
+    },
+    "cart_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "checkout_success>=99%": {
+     "pass": true,
+     "value": 100.0
+    }
+   },
+   "served_frontend_rps": 196.74,
+   "browse_rps": 112.6,
+   "checkout_p95_ms": 187.73913043478262,
+   "node_count": 9,
+   "node_set_sha256": "3d67a92aaa5e88a18ac3082d8a6616c7921baa5e4d889e823637b68a2232e730",
+   "density_rps_per_node": 21.86,
+   "checkout_client_req": 951,
+   "checkout_client_fail": 0,
+   "checkout_client_success_pct": 100.0,
+   "offered_locust_rps": 41.51033809718909,
+   "overall_client_fail_pct": 0.0
+  },
+  {
+   "users": 400,
+   "sli_verdict": "PASS",
+   "gates": {
+    "browse_success>=99.5%": {
+     "pass": true,
+     "value": 99.9616
+    },
+    "browse_p95<1000ms": {
+     "pass": true,
+     "value": 45.2
+    },
+    "cart_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "checkout_success>=99%": {
+     "pass": true,
+     "value": 100.0
+    }
+   },
+   "served_frontend_rps": 278.05,
+   "browse_rps": 160.4,
+   "checkout_p95_ms": 329.8473427004594,
+   "node_count": 9,
+   "node_set_sha256": "3d67a92aaa5e88a18ac3082d8a6616c7921baa5e4d889e823637b68a2232e730",
+   "density_rps_per_node": 30.89,
+   "checkout_client_req": 1889,
+   "checkout_client_fail": 0,
+   "checkout_client_success_pct": 100.0,
+   "offered_locust_rps": 82.8743687967089,
+   "overall_client_fail_pct": 0.0057
+  },
+  {
+   "users": 600,
+   "sli_verdict": "PASS",
+   "gates": {
+    "browse_success>=99.5%": {
+     "pass": true,
+     "value": 99.9414
+    },
+    "browse_p95<1000ms": {
+     "pass": true,
+     "value": 45.7
+    },
+    "cart_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "checkout_success>=99%": {
+     "pass": true,
+     "value": 100.0
+    }
+   },
+   "served_frontend_rps": 365.26,
+   "browse_rps": 209.36,
+   "checkout_p95_ms": 630.0636684923102,
+   "node_count": 9,
+   "node_set_sha256": "3d67a92aaa5e88a18ac3082d8a6616c7921baa5e4d889e823637b68a2232e730",
+   "density_rps_per_node": 40.58,
+   "checkout_client_req": 2830,
+   "checkout_client_fail": 1,
+   "checkout_client_success_pct": 99.965,
+   "offered_locust_rps": 123.75192366721579,
+   "overall_client_fail_pct": 0.0769
+  },
+  {
+   "users": 800,
+   "sli_verdict": "PASS",
+   "gates": {
+    "browse_success>=99.5%": {
+     "pass": true,
+     "value": 99.9185
+    },
+    "browse_p95<1000ms": {
+     "pass": true,
+     "value": 47.6
+    },
+    "cart_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "checkout_success>=99%": {
+     "pass": true,
+     "value": 100.0
+    }
+   },
+   "served_frontend_rps": 447.4,
+   "browse_rps": 255.59,
+   "checkout_p95_ms": 1138.5365853658523,
+   "node_count": 9,
+   "node_set_sha256": "3d67a92aaa5e88a18ac3082d8a6616c7921baa5e4d889e823637b68a2232e730",
+   "density_rps_per_node": 49.71,
+   "checkout_client_req": 3775,
+   "checkout_client_fail": 6,
+   "checkout_client_success_pct": 99.841,
+   "offered_locust_rps": 164.41133118738972,
+   "overall_client_fail_pct": 0.152
+  },
+  {
+   "users": 1000,
+   "sli_verdict": "PASS",
+   "gates": {
+    "browse_success>=99.5%": {
+     "pass": true,
+     "value": 99.7739
+    },
+    "browse_p95<1000ms": {
+     "pass": true,
+     "value": 60.1
+    },
+    "cart_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "checkout_success>=99%": {
+     "pass": true,
+     "value": 100.0
+    }
+   },
+   "served_frontend_rps": 525.45,
+   "browse_rps": 302.19,
+   "checkout_p95_ms": 1352.956272952979,
+   "node_count": 9,
+   "node_set_sha256": "3d67a92aaa5e88a18ac3082d8a6616c7921baa5e4d889e823637b68a2232e730",
+   "density_rps_per_node": 58.38,
+   "checkout_client_req": 4539,
+   "checkout_client_fail": 0,
+   "checkout_client_success_pct": 100.0,
+   "offered_locust_rps": 203.076044700291,
+   "overall_client_fail_pct": 0.1383
+  },
+  {
+   "users": 1400,
+   "sli_verdict": "FAIL",
+   "gates": {
+    "browse_success>=99.5%": {
+     "pass": false,
+     "value": 99.0626
+    },
+    "browse_p95<1000ms": {
+     "pass": true,
+     "value": 110.4
+    },
+    "cart_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "checkout_success>=99%": {
+     "pass": true,
+     "value": 99.9721
+    }
+   },
+   "served_frontend_rps": 601.98,
+   "browse_rps": 345.82,
+   "checkout_p95_ms": 15000.0,
+   "node_count": 9,
+   "node_set_sha256": "3d67a92aaa5e88a18ac3082d8a6616c7921baa5e4d889e823637b68a2232e730",
+   "density_rps_per_node": 66.89,
+   "checkout_client_req": 5431,
+   "checkout_client_fail": 3442,
+   "checkout_client_success_pct": 36.623,
+   "offered_locust_rps": 250.21943852020655,
+   "overall_client_fail_pct": 3.9845
+  },
+  {
+   "users": 1800,
+   "sli_verdict": "FAIL",
+   "gates": {
+    "browse_success>=99.5%": {
+     "pass": false,
+     "value": 97.2474
+    },
+    "browse_p95<1000ms": {
+     "pass": true,
+     "value": 340.6
+    },
+    "cart_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "checkout_success>=99%": {
+     "pass": true,
+     "value": 99.9722
+    }
+   },
+   "served_frontend_rps": 745.86,
+   "browse_rps": 428.98,
+   "checkout_p95_ms": 15000.0,
+   "node_count": 9,
+   "node_set_sha256": "3d67a92aaa5e88a18ac3082d8a6616c7921baa5e4d889e823637b68a2232e730",
+   "density_rps_per_node": 82.87,
+   "checkout_client_req": 6929,
+   "checkout_client_fail": 6248,
+   "checkout_client_success_pct": 9.828,
+   "offered_locust_rps": 316.4322647350691,
+   "overall_client_fail_pct": 6.4434
+  },
+  {
+   "users": 2400,
+   "sli_verdict": "FAIL",
+   "gates": {
+    "browse_success>=99.5%": {
+     "pass": false,
+     "value": 95.7303
+    },
+    "browse_p95<1000ms": {
+     "pass": true,
+     "value": 533.8
+    },
+    "cart_success>=99.5%": {
+     "pass": true,
+     "value": 100.0
+    },
+    "checkout_success>=99%": {
+     "pass": true,
+     "value": 99.9706
+    }
+   },
+   "served_frontend_rps": 966.63,
+   "browse_rps": 550.89,
+   "checkout_p95_ms": 15000.0,
+   "node_count": 9,
+   "node_set_sha256": "3d67a92aaa5e88a18ac3082d8a6616c7921baa5e4d889e823637b68a2232e730",
+   "density_rps_per_node": 107.4,
+   "checkout_client_req": 9060,
+   "checkout_client_fail": 8853,
+   "checkout_client_success_pct": 2.285,
+   "offered_locust_rps": 417.50358662622705,
+   "overall_client_fail_pct": 8.3016
+  }
+ ]
+}

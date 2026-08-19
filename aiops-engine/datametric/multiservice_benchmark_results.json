@@ -1,0 +1,87 @@
+{
+  "benchmark_context": "Evaluated across 7 microservices over 420 telemetry cycles with non-zero noise (RPS 80, Latency 45ms). NO warmup trimming applied.",
+  "two_layer_system_metrics": {
+    "precision": 1.0,
+    "recall": 0.9,
+    "false_positive_rate": 0.0,
+    "confusion_matrix": {
+      "TP": 27,
+      "FP": 0,
+      "FN": 3,
+      "TN": 390
+    }
+  },
+  "pure_ml_isolation_forest_metrics": {
+    "precision": 0.0712,
+    "recall": 0.9,
+    "false_positive_rate": 0.9026,
+    "confusion_matrix": {
+      "TP": 27,
+      "FP": 352,
+      "FN": 3,
+      "TN": 38
+    }
+  },
+  "layer_value_proposition": {
+    "ml_isolation_forest": "Phát hiện bất thường sớm (Proactive Early Warning) trên đa chiều đặc trưng (CPU, Latency, Memory) khi sự cố mới rò rỉ.",
+    "slo_burn_rate_gate": "Đảm bảo độ chính xác (High Precision), lọc bỏ nhiễu ngắn hạn và xác nhận vi phạm ngân sách lỗi nghiêm trọng (K=14.4)."
+  },
+  "per_service_results": {
+    "frontend": {
+      "system_precision": 1.0,
+      "system_recall": 0.7,
+      "pure_ml_tp": 7,
+      "pure_ml_fp": 12,
+      "pure_ml_fn": 3,
+      "pure_ml_tn": 38
+    },
+    "checkout": {
+      "system_precision": 1.0,
+      "system_recall": 1.0,
+      "pure_ml_tp": 10,
+      "pure_ml_fp": 50,
+      "pure_ml_fn": 0,
+      "pure_ml_tn": 0
+    },
+    "payment": {
+      "system_precision": 1.0,
+      "system_recall": 1.0,
+      "pure_ml_tp": 10,
+      "pure_ml_fp": 50,
+      "pure_ml_fn": 0,
+      "pure_ml_tn": 0
+    },
+    "product-catalog": {
+      "system_precision": 1.0,
+      "system_recall": 1.0,
+      "pure_ml_tp": 0,
+      "pure_ml_fp": 60,
+      "pure_ml_fn": 0,
+      "pure_ml_tn": 0
+    },
+    "product-reviews": {
+      "system_precision": 1.0,
+      "system_recall": 1.0,
+      "pure_ml_tp": 0,
+      "pure_ml_fp": 60,
+      "pure_ml_fn": 0,
+      "pure_ml_tn": 0
+    },
+    "shipping": {
+      "system_precision": 1.0,
+      "system_recall": 1.0,
+      "pure_ml_tp": 0,
+      "pure_ml_fp": 60,
+      "pure_ml_fn": 0,
+      "pure_ml_tn": 0
+    },
+    "recommendation": {
+      "system_precision": 1.0,
+      "system_recall": 1.0,
+      "pure_ml_tp": 0,
+      "pure_ml_fp": 60,
+      "pure_ml_fn": 0,
+      "pure_ml_tn": 0
+    }
+  }
+}

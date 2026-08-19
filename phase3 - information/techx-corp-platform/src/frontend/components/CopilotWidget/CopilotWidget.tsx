@@ -12,6 +12,7 @@ interface Message {
   role: Role;
   content: string;
   token?: string | null; // set on assistant messages that need a write confirmation
+  trace?: string[]; // reasoning steps captured from the SSE stream, shown collapsed
 }
 
 const STORAGE_USER = 'copilot_user_id';
@@ -19,6 +20,15 @@ const STORAGE_SESSION = 'copilot_session_id';
 
 const randomId = () =>
   'xxxxxxxx'.replace(/x/g, () => Math.floor(Math.random() * 16).toString(16)) + '-' + Date.now().toString(16);
+
+const normalizeText = (value: unknown, fallback: string) => {
+  if (typeof value === 'string') {
+    const text = value.trim();
+    return text || fallback;
+  }
+  if (value == null) return fallback;
+  return String(value);
+};
 
 const CopilotWidget = () => {
   const [mounted, setMounted] = useState(false);
@@ -28,6 +38,7 @@ const CopilotWidget = () => {
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: 'Xin chào! Tôi là trợ lý mua sắm. Bạn cần tìm gì hôm nay?' },
   ]);
+  const [liveSteps, setLiveSteps] = useState<string[]>([]); // reasoning trace for the in-flight turn
   const userId = useRef<string>('');
   const sessionId = useRef<string>('');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -59,26 +70,90 @@ const CopilotWidget = () => {
     return res.json();
   };
 
+  // Streams /api/copilot/chat/stream (SSE): `event: trace` lines are reasoning steps shown
+  // live, `event: final` carries the reply. Falls back to the non-streaming /chat on any
+  // stream failure so a proxy/timeout issue never breaks chat itself.
   const send = async () => {
     const text = input.trim();
     if (!text || loading) return;
     setInput('');
     setMessages(m => [...m, { role: 'user', content: text }]);
+    setLiveSteps([]);
     setLoading(true);
+    const trace: string[] = [];
     try {
-      const r = await post('chat', { message: text, session_id: sessionId.current, user_id: userId.current });
-      if (r.session_id) sessionId.current = r.session_id;
-      setMessages(m => [
-        ...m,
-        { role: 'assistant', content: r.reply || 'Xin lỗi, tôi chưa có câu trả lời.', token: r.token || null },
-      ]);
+      const res = await fetch('/api/copilot/chat/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+        body: JSON.stringify({ message: text, session_id: sessionId.current, user_id: userId.current }),
+      });
+      if (res.status === 429) throw new Error('rate_limited');
+      if (!res.ok || !res.body) throw new Error('stream_failed');
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      let finished = false;
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (value) buf += decoder.decode(value, { stream: true });
+        let sep: number;
+        while ((sep = buf.indexOf('\n\n')) >= 0) {
+          const block = buf.slice(0, sep);
+          buf = buf.slice(sep + 2);
+          let evt = 'message';
+          let data = '';
+          for (const line of block.split('\n')) {
+            if (line.startsWith('event:')) evt = line.slice(6).trim();
+            else if (line.startsWith('data:')) data += line.slice(5).trim();
+          }
+          if (!data) continue;
+          let payload: Record<string, unknown>;
+          try { payload = JSON.parse(data); } catch { continue; }
+          if (evt === 'trace') {
+            const label = normalizeText(payload.detail || payload.step, '').trim();
+            if (label) { trace.push(label); setLiveSteps([...trace]); }
+          } else if (evt === 'final') {
+            if (payload.session_id) sessionId.current = String(payload.session_id);
+            setMessages(m => [...m, {
+              role: 'assistant',
+              content: normalizeText(payload.reply, 'Xin lỗi, tôi chưa có câu trả lời.'),
+              token: (payload.token as string) || null,
+              trace: trace.slice(),
+            }]);
+            finished = true;
+          } else if (evt === 'error') {
+            setMessages(m => [...m, { role: 'assistant', content: 'Dịch vụ tạm thời gặp lỗi, thử lại sau nhé.' }]);
+            finished = true;
+          }
+        }
+        if (done) break;
+      }
+      if (!finished) throw new Error('stream_incomplete');
     } catch (e) {
-      const msg = (e as Error).message === 'rate_limited'
-        ? 'Bạn thao tác hơi nhanh — vui lòng thử lại sau giây lát.'
-        : 'Dịch vụ tạm thời không khả dụng, thử lại sau nhé.';
-      setMessages(m => [...m, { role: 'assistant', content: msg }]);
+      const reason = (e as Error).message;
+      if (reason === 'rate_limited') {
+        setMessages(m => [...m, { role: 'assistant', content: 'Bạn thao tác hơi nhanh — vui lòng thử lại sau giây lát.' }]);
+      } else {
+        // Fallback to the non-streaming endpoint so a stream hiccup still yields an answer.
+        try {
+          const r = await post('chat', { message: text, session_id: sessionId.current, user_id: userId.current });
+          if (r.session_id) sessionId.current = r.session_id;
+          setMessages(m => [...m, {
+            role: 'assistant',
+            content: normalizeText(r.reply, 'Xin lỗi, tôi chưa có câu trả lời.'),
+            token: r.token || null,
+            trace: Array.isArray(r.steps)
+              ? r.steps.map((step: unknown) => normalizeText((step as { detail?: unknown })?.detail, '')).filter(Boolean)
+              : undefined,
+          }]);
+        } catch {
+          setMessages(m => [...m, { role: 'assistant', content: 'Dịch vụ tạm thời không khả dụng, thử lại sau nhé.' }]);
+        }
+      }
     } finally {
       setLoading(false);
+      setLiveSteps([]);
     }
   };
 
@@ -86,7 +161,7 @@ const CopilotWidget = () => {
     setLoading(true);
     try {
       const r = await post('confirm', { session_id: sessionId.current, token, confirmed: true });
-      setMessages(m => [...m, { role: 'assistant', content: r.reply || 'Đã xử lý.' }]);
+      setMessages(m => [...m, { role: 'assistant', content: normalizeText(r.reply, 'Đã xử lý.') }]);
     } catch {
       setMessages(m => [...m, { role: 'assistant', content: 'Không xác nhận được, thử lại sau.' }]);
     } finally {
@@ -153,6 +228,18 @@ const CopilotWidget = () => {
                     border: m.role === 'user' ? 'none' : '1px solid #e5e5ef',
                   }}
                 >
+                  {m.trace && m.trace.length > 0 && (
+                    <details style={{ marginBottom: 6 }}>
+                      <summary style={{ cursor: 'pointer', color: '#7a7a8c', fontSize: 12 }}>
+                        🧠 Quá trình xử lý ({m.trace.length} bước)
+                      </summary>
+                      <ol style={{ margin: '6px 0 0', paddingLeft: 18, color: '#7a7a8c', fontSize: 12, lineHeight: 1.5 }}>
+                        {m.trace.map((t, j) => (
+                          <li key={j}>{t}</li>
+                        ))}
+                      </ol>
+                    </details>
+                  )}
                   {m.content}
                   {m.token && (
                     <div style={{ marginTop: 8 }}>
@@ -176,7 +263,17 @@ const CopilotWidget = () => {
                 </div>
               </div>
             ))}
-            {loading && <div style={{ color: '#888', fontSize: 13, padding: '2px 4px' }}>Đang soạn…</div>}
+            {loading && (
+              <div style={{ color: '#7a7a8c', fontSize: 12.5, padding: '4px 6px', lineHeight: 1.6 }}>
+                {liveSteps.length === 0
+                  ? 'Đang soạn…'
+                  : liveSteps.map((s, i) => (
+                      <div key={i} style={{ opacity: i === liveSteps.length - 1 ? 1 : 0.55 }}>
+                        {i === liveSteps.length - 1 ? '⚙️ ' : '✓ '}{s}
+                      </div>
+                    ))}
+              </div>
+            )}
           </div>
           <div style={{ display: 'flex', padding: 10, borderTop: '1px solid #ececf3', background: '#fff' }}>
             <input

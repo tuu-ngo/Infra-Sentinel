@@ -1,0 +1,48 @@
+﻿# EV-06 endpoint (endpoint bị gỡ = Service đã loại pod chết)
+# phase=after  utc=20260730-180505
+------------------------------------------------------------------------
+kubectl : Warning: v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice
+At C:\Users\ADMIN\Downloads\Phase3-TF3-Infra-Sentinel\scripts\chaos\drill-capture.ps1:92 char:3
++   kubectl get endpoints -n $Namespace --request-timeout=30s
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Warning: v1 End...1 EndpointSlice:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+NAME                            ENDPOINTS                                                         AGE
+ad                              10.0.22.166:8080                                                  17d
+ad-headless                     10.0.22.166:8080                                                  9h
+aiops-egress-proxy              10.0.26.172:3128,10.0.42.19:3128                                  29h
+aiops-engine                    10.0.17.148:8000                                                  15d
+cart                            10.0.41.58:8080,10.0.7.173:8080                                   17d
+cart-headless                   10.0.41.58:8080,10.0.7.173:8080                                   9h
+checkout                                                                                          17d
+currency                        10.0.14.116:8080,10.0.36.0:8080,10.0.4.146:8080 + 2 more...       17d
+currency-headless               10.0.14.116:8080,10.0.36.0:8080,10.0.4.146:8080 + 2 more...       9h
+email                           10.0.12.254:8080,10.0.26.137:8080                                 17d
+email-headless                  10.0.12.254:8080,10.0.26.137:8080                                 9h
+flagd                           10.0.37.207:8013,10.0.37.207:8016,10.0.37.207:4000                17d
+frontend                        10.0.13.51:8080,10.0.39.121:8080                                  17d
+frontend-headless               10.0.13.51:8080,10.0.39.121:8080                                  2d8h
+frontend-proxy                  10.0.10.244:8080,10.0.45.4:8080                                   17d
+grafana                         10.0.7.215:3000                                                   17d
+image-provider                  10.0.24.209:8081                                                  17d
+jaeger                          10.0.26.248:4318,10.0.26.248:8889,10.0.26.248:6832 + 11 more...   17d
+llm                             10.0.29.202:8000                                                  17d
+load-generator                  10.0.25.172:8089                                                  17d
+opensearch                      10.0.28.188:9600,10.0.28.188:9300,10.0.28.188:9200                17d
+opensearch-headless             10.0.28.188:9600,10.0.28.188:9300,10.0.28.188:9200                17d
+otel-gateway                    10.0.1.191:8888,10.0.33.135:8888,10.0.1.191:4318 + 3 more...      9d
+payment                         10.0.37.194:8080,10.0.7.233:8080                                  17d
+product-catalog                 10.0.3.118:8080,10.0.40.63:8080                                   17d
+product-catalog-headless        10.0.3.118:8080,10.0.40.63:8080                                   9h
+product-reviews                 10.0.12.251:3551,10.0.32.183:3551                                 17d
+product-reviews-egress-proxy    10.0.12.111:3128,10.0.30.117:3128                                 27h
+product-reviews-headless        10.0.12.251:3551,10.0.32.183:3551                                 9h
+prometheus                      10.0.46.250:9090                                                  17d
+quote                           10.0.37.158:8080,10.0.5.54:8080                                   17d
+recommendation                                                                                    17d
+recommendation-headless                                                                           9h
+shipping                        10.0.34.180:8080,10.0.5.46:8080                                   17d
+shopping-copilot                10.0.4.63:8001,10.0.47.62:8001                                    3d7h
+shopping-copilot-egress-proxy   10.0.14.211:3128,10.0.31.184:3128                                 15h
+

@@ -25,6 +25,14 @@ spec:
       app: shopping-copilot
   template:
     metadata:
+      annotations:
+        # BUMP THIS whenever configmap.yaml changes. These are plain manifests, so there is no
+        # Helm-style checksum: ArgoCD would update the ConfigMap without rolling the pods, and
+        # envFrom values are only read at container start - so the new config silently never
+        # takes effect. That is exactly what happened with HTTPS_PROXY (chat returned 504 until
+        # a manual `kubectl rollout restart`). Changing this annotation changes the pod
+        # template, so ArgoCD performs a normal rolling update instead.
+        techx.io/configmap-revision: "3"
       labels:
         app: shopping-copilot
         app.kubernetes.io/part-of: techx-corp
@@ -80,6 +88,15 @@ spec:
                 secretKeyRef:
                   name: shopping-copilot-db
                   key: password
+            # Titan embed region for the semantic cache (genai_cache reads AWS_DEFAULT_REGION
+            # directly, default us-east-1). MUST be declared here in env[], NOT in the
+            # ConfigMap: the EKS Pod Identity webhook injects AWS_DEFAULT_REGION=ap-southeast-1
+            # into env[], and env[] overrides envFrom - so a ConfigMap value is ignored, but a
+            # value the container already declares makes the webhook skip injection. Titan
+            # (amazon.titan-embed-text-v2:0) only exists in us-east-1. AWS_REGION is left to the
+            # webhook (ap-southeast-1), so every other boto3 client stays regional there.
+            - name: AWS_DEFAULT_REGION
+              value: us-east-1
             # ElastiCache Valkey URL: rediss:// with auth token, rendered by ExternalSecret.
             - name: VALKEY_URL
               valueFrom:

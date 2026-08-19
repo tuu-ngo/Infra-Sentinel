@@ -120,17 +120,10 @@ class RemediationHandler:
             # 2. Kiểm tra Gate 2: ML Isolation Forest
             if_passed = False
             try:
-                df_features = self.detector.extract_features_realtime(culprit_service)
-                if not df_features.empty and len(df_features) >= 1:
-                    latest_row = df_features.tail(1).to_dict("records")[0]
-                    features_list = [latest_row[col] for col in feature_cols]
-                    # check_infra_anomaly trả về True nếu bất thường, False nếu bình thường
-                    is_anomalous = self.detector.check_infra_anomaly(culprit_service, features_list)
-                    if_passed = not is_anomalous
-                    logger.info(f"ML check for {culprit_service} - Anomaly flag: {is_anomalous}")
-                else:
-                    logger.warning(f"No real-time features returned for {culprit_service} during verify poll. Falling back to Z-score only.")
-                    if_passed = True
+                res = self.detector.check_service_anomaly(culprit_service)
+                is_anomalous = res.get("is_anomalous", False)
+                if_passed = not is_anomalous
+                logger.info(f"ML check for {culprit_service} - Anomaly flag: {is_anomalous}")
             except Exception as e:
                 logger.error(f"Error checking ML anomaly flag during verify: {e}")
                 if_passed = True

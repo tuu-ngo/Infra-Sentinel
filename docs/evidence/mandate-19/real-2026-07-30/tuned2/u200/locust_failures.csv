@@ -1,0 +1,7 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,/api/cart,HTTPError('503 Server Error: Service Unavailable for url: /api/cart'),1,2026-07-30T06:52:40Z,2026-07-30T06:52:40Z
+GET,/api/products/[id],HTTPError('500 Server Error: Internal Server Error for url: /api/products/[id]'),178,2026-07-30T06:49:52Z,2026-07-30T06:50:03Z
+GET,/api/products/[id],HTTPError('503 Server Error: Service Unavailable for url: /api/products/[id]'),2,2026-07-30T06:52:41Z,2026-07-30T06:52:42Z
+GET,/api/recommendations,HTTPError('503 Server Error: Service Unavailable for url: /api/recommendations'),4,2026-07-30T06:48:42Z,2026-07-30T06:52:42Z
+GET,/api/product-reviews/[id],HTTPError('503 Server Error: Service Unavailable for url: /api/product-reviews/[id]'),24,2026-07-30T06:49:51Z,2026-07-30T06:50:01Z
+POST,/api/checkout,HTTPError('500 Server Error: Internal Server Error for url: /api/checkout'),1,2026-07-30T06:50:03Z,2026-07-30T06:50:03Z

@@ -1,0 +1,33 @@
+### Vì sao trần bị chặn — snapshot lúc stage 2400 user, 2026-07-30T10:06:32Z
+
+## Lý do scheduler từ chối (pod frontend Pending)
+  0/9 nodes are available:
+    4 node(s) didn't match Pod's node affinity/selector   <- 4 node t3.large managed
+    1 Insufficient cpu                                <- tầng elastic đã cạn
+    3 node(s) didn't match pod topology spread constraints
+  node limits have been exhausted for nodepool (flash-sale-spot-arm64)
+  label "techx.io/arch" does not have known values (typo of "kubernetes.io/arch"?)
+
+## CPU thật từng node — tầng managed rảnh nhưng KHÔNG dùng được cho hot path
+ip-10-0-13-162.ap-southeast-1.compute.internal   220m    11%   739Mi    23%   
+ip-10-0-20-78.ap-southeast-1.compute.internal    1792m   92%   1391Mi   44%   
+ip-10-0-21-94.ap-southeast-1.compute.internal    486m    25%   826Mi    26%   
+ip-10-0-24-177.ap-southeast-1.compute.internal   1132m   58%   5238Mi   74%   
+ip-10-0-26-153.ap-southeast-1.compute.internal   562m    29%   2994Mi   42%   
+ip-10-0-34-80.ap-southeast-1.compute.internal    1206m   62%   1853Mi   59%   
+ip-10-0-4-166.ap-southeast-1.compute.internal    28m     1%    956Mi    29%   
+ip-10-0-43-83.ap-southeast-1.compute.internal    362m    18%   3016Mi   42%   
+ip-10-0-45-138.ap-southeast-1.compute.internal   474m    24%   991Mi    31%   
+ip-10-0-45-20.ap-southeast-1.compute.internal    175m    9%    685Mi    21%   
+ip-10-0-5-127.ap-southeast-1.compute.internal    1926m   99%   2016Mi   64%   
+ip-10-0-8-134.ap-southeast-1.compute.internal    957m    49%   3508Mi   49%   
+
+## nodeSelector giam hot path vào tầng elastic (values-mandate13.yaml)
+  nodeSelector: { techx.io/workload: elastic, techx.io/arch: arm64 }
+  -> 4 node t3.large (amd64, không có label techx.io/workload) KHÔNG BAO GIỜ nhận được
+
+## NodePool limits — trần cứng của tầng elastic
+elastic-ondemand-fallback         4     1
+elastic-ondemand-fallback-arm64   8     2
+flash-sale-spot                   12    2
+flash-sale-spot-arm64             16    2

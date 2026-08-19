@@ -1,0 +1,59 @@
+﻿# EV-06 pod trong namespace
+# phase=before  utc=20260730-175720
+------------------------------------------------------------------------
+NAME                                             READY   STATUS      RESTARTS       AGE     IP            NODE                                             NOMINATED NODE   READINESS GATES
+accounting-7d84686dc6-hkb5w                      1/1     Running     6 (27m ago)    11h     10.0.2.41     ip-10-0-8-134.ap-southeast-1.compute.internal    <none>           <none>
+ad-748cc587b8-96m7k                              1/1     Running     0              11h     10.0.22.166   ip-10-0-26-153.ap-southeast-1.compute.internal   <none>           <none>
+aiops-egress-proxy-78dc9f9c49-bj4s6              1/1     Running     0              118m    10.0.42.19    ip-10-0-43-83.ap-southeast-1.compute.internal    <none>           <none>
+aiops-egress-proxy-78dc9f9c49-xrhgl              1/1     Running     0              118m    10.0.26.172   ip-10-0-24-177.ap-southeast-1.compute.internal   <none>           <none>
+aiops-engine-5c97ccf9b8-fvhsr                    1/1     Running     0              40m     10.0.17.148   ip-10-0-24-177.ap-southeast-1.compute.internal   <none>           <none>
+cart-7dc66cd5cd-njrk8                            1/1     Running     0              9h      10.0.41.58    ip-10-0-34-80.ap-southeast-1.compute.internal    <none>           <none>
+cart-7dc66cd5cd-qngbz                            1/1     Running     0              9h      10.0.7.173    ip-10-0-5-127.ap-southeast-1.compute.internal    <none>           <none>
+checkout-rollout-7db54d4f76-rq8jl                1/1     Running     0              8h      10.0.47.4     ip-10-0-34-80.ap-southeast-1.compute.internal    <none>           <none>
+checkout-rollout-7db54d4f76-xwqbf                1/1     Running     0              8h      10.0.8.61     ip-10-0-5-127.ap-southeast-1.compute.internal    <none>           <none>
+cloudflared-6f865d9d8b-72ws6                     1/1     Running     0              2d1h    10.0.15.19    ip-10-0-8-134.ap-southeast-1.compute.internal    <none>           <none>
+cloudflared-6f865d9d8b-78n9h                     1/1     Running     0              2d1h    10.0.46.40    ip-10-0-43-83.ap-southeast-1.compute.internal    <none>           <none>
+currency-b775db549-cgvrm                         1/1     Running     0              9h      10.0.45.82    ip-10-0-34-80.ap-southeast-1.compute.internal    <none>           <none>
+currency-b775db549-xw5r8                         1/1     Running     0              9h      10.0.14.116   ip-10-0-5-127.ap-southeast-1.compute.internal    <none>           <none>
+email-5c88c996b6-p5p2d                           1/1     Running     0              11h     10.0.12.254   ip-10-0-8-134.ap-southeast-1.compute.internal    <none>           <none>
+email-5c88c996b6-r9ssn                           1/1     Running     0              11h     10.0.26.137   ip-10-0-26-153.ap-southeast-1.compute.internal   <none>           <none>
+flagd-5d95fc8b65-r8kkk                           2/2     Running     0              36h     10.0.37.207   ip-10-0-43-83.ap-southeast-1.compute.internal    <none>           <none>
+fraud-detection-74cb656444-zbfv9                 1/1     Running     0              47h     10.0.17.237   ip-10-0-26-153.ap-southeast-1.compute.internal   <none>           <none>
+frontend-577476c78b-gwgmz                        1/1     Running     0              6h9m    10.0.39.121   ip-10-0-34-80.ap-southeast-1.compute.internal    <none>           <none>
+frontend-577476c78b-xvq2s                        1/1     Running     0              37m     10.0.13.51    ip-10-0-5-127.ap-southeast-1.compute.internal    <none>           <none>
+frontend-proxy-864dfc5bfc-5ks97                  1/1     Running     0              175m    10.0.45.4     ip-10-0-34-80.ap-southeast-1.compute.internal    <none>           <none>
+frontend-proxy-864dfc5bfc-8t4p6                  1/1     Running     0              37m     10.0.10.244   ip-10-0-5-127.ap-southeast-1.compute.internal    <none>           <none>
+grafana-575c7b5476-zlggq                         4/4     Running     1 (2d3h ago)   2d8h    10.0.7.215    ip-10-0-8-134.ap-southeast-1.compute.internal    <none>           <none>
+image-provider-6b8fc84fd6-ww5n6                  1/1     Running     0              2d1h    10.0.24.209   ip-10-0-24-177.ap-southeast-1.compute.internal   <none>           <none>
+jaeger-5758598465-6r5qw                          1/1     Running     2 (10h ago)    2d9h    10.0.26.248   ip-10-0-24-177.ap-southeast-1.compute.internal   <none>           <none>
+llm-6967b66b87-8l7rz                             1/1     Running     0              47h     10.0.29.202   ip-10-0-24-177.ap-southeast-1.compute.internal   <none>           <none>
+load-generator-7d8b897b9b-8m829                  1/1     Running     0              37h     10.0.25.172   ip-10-0-24-177.ap-southeast-1.compute.internal   <none>           <none>
+locust-bench-766db58764-72bxc                    1/1     Running     0              7h22m   10.0.47.199   ip-10-0-45-138.ap-southeast-1.compute.internal   <none>           <none>
+locust-bench-766db58764-dj96p                    1/1     Running     0              9h      10.0.7.197    ip-10-0-5-127.ap-southeast-1.compute.internal    <none>           <none>
+locust-bench-766db58764-xg5sc                    1/1     Running     0              11h     10.0.34.86    ip-10-0-34-80.ap-southeast-1.compute.internal    <none>           <none>
+opensearch-0                                     1/1     Running     0              9h      10.0.28.188   ip-10-0-24-177.ap-southeast-1.compute.internal   <none>           <none>
+otel-gateway-7cdbf88cc6-2mzcm                    1/1     Running     0              9h      10.0.33.135   ip-10-0-34-80.ap-southeast-1.compute.internal    <none>           <none>
+otel-gateway-7cdbf88cc6-msp9j                    1/1     Running     0              9h      10.0.1.191    ip-10-0-5-127.ap-southeast-1.compute.internal    <none>           <none>
+otel-logs-retention-29753370-hjb89               0/1     Completed   0              2d16h   10.0.22.166   ip-10-0-26-153.ap-southeast-1.compute.internal   <none>           <none>
+otel-logs-retention-29754810-8ss2w               0/1     Completed   0              40h     10.0.20.23    ip-10-0-24-177.ap-southeast-1.compute.internal   <none>           <none>
+otel-logs-retention-29756250-s6z4v               0/1     Completed   0              16h     10.0.5.104    ip-10-0-8-134.ap-southeast-1.compute.internal    <none>           <none>
+payment-84cc5889cd-44g6z                         1/1     Running     0              11h     10.0.37.194   ip-10-0-34-80.ap-southeast-1.compute.internal    <none>           <none>
+payment-84cc5889cd-4g67g                         1/1     Running     0              9h      10.0.7.233    ip-10-0-5-127.ap-southeast-1.compute.internal    <none>           <none>
+product-catalog-6477448ddc-fw4k7                 1/1     Running     0              7h22m   10.0.3.118    ip-10-0-5-127.ap-southeast-1.compute.internal    <none>           <none>
+product-catalog-6477448ddc-vc24h                 1/1     Running     0              8h      10.0.40.63    ip-10-0-34-80.ap-southeast-1.compute.internal    <none>           <none>
+product-reviews-7bb896dfb-m9lv8                  1/1     Running     0              10h     10.0.32.183   ip-10-0-34-80.ap-southeast-1.compute.internal    <none>           <none>
+product-reviews-7bb896dfb-vmxgn                  1/1     Running     0              7h22m   10.0.12.251   ip-10-0-5-127.ap-southeast-1.compute.internal    <none>           <none>
+product-reviews-egress-proxy-5d448f88cc-4hl4t    1/1     Running     0              27h     10.0.30.117   ip-10-0-26-153.ap-southeast-1.compute.internal   <none>           <none>
+product-reviews-egress-proxy-5d448f88cc-znzkr    1/1     Running     0              27h     10.0.12.111   ip-10-0-8-134.ap-southeast-1.compute.internal    <none>           <none>
+prometheus-5f66b859cf-jl2j8                      1/1     Running     0              4h37m   10.0.46.250   ip-10-0-43-83.ap-southeast-1.compute.internal    <none>           <none>
+prometheus-6bf886fbf6-z7b26                      0/1     Completed   0              13d     10.0.14.211   ip-10-0-8-134.ap-southeast-1.compute.internal    <none>           <none>
+quote-6d7c5685c5-g5qwq                           1/1     Running     0              9h      10.0.5.54     ip-10-0-5-127.ap-southeast-1.compute.internal    <none>           <none>
+quote-6d7c5685c5-kl45c                           1/1     Running     0              11h     10.0.37.158   ip-10-0-34-80.ap-southeast-1.compute.internal    <none>           <none>
+recommendation-759b7cd8c6-l298d                  1/1     Running     0              11h     10.0.23.199   ip-10-0-26-153.ap-southeast-1.compute.internal   <none>           <none>
+shipping-5d588978dd-dnsjk                        1/1     Running     0              9h      10.0.5.46     ip-10-0-5-127.ap-southeast-1.compute.internal    <none>           <none>
+shipping-5d588978dd-nqtpq                        1/1     Running     0              11h     10.0.34.180   ip-10-0-34-80.ap-southeast-1.compute.internal    <none>           <none>
+shopping-copilot-65546fb68f-fltvf                1/1     Running     0              10h     10.0.47.62    ip-10-0-43-83.ap-southeast-1.compute.internal    <none>           <none>
+shopping-copilot-65546fb68f-k6g7j                1/1     Running     0              10h     10.0.4.63     ip-10-0-8-134.ap-southeast-1.compute.internal    <none>           <none>
+shopping-copilot-egress-proxy-5fcbc4bcd4-gc8nk   1/1     Running     0              15h     10.0.31.184   ip-10-0-24-177.ap-southeast-1.compute.internal   <none>           <none>
+shopping-copilot-egress-proxy-5fcbc4bcd4-jvc8r   1/1     Running     0              15h     10.0.14.211   ip-10-0-8-134.ap-southeast-1.compute.internal    <none>           <none>
+

@@ -5,6 +5,15 @@ eks_admin_principal_arns = [
 edge_phase       = "private"
 private_alb_name = "techx-tf3-frontend-internal"
 
+# Mandate #21 — AZ mục tiêu của experiment FIS az-loss. Đặt 1c CÓ CHỦ ĐÍCH: 1c là AZ
+# tệ nhất (giữ RDS primary + frontend + ElastiCache replica + 1 broker), nên drill 1c
+# chứng minh được ca khó nhất. Commit ở đây để CODE KHỚP HẠ TẦNG LIVE — trước đó template
+# từng bị retarget 1c bằng `terraform apply` local (drift so với default 1b trong biến),
+# và chính drift vô hình đó khiến một lần start-experiment tưởng nhắm 1b lại blackhole 1c.
+# Mọi thay đổi target từ nay đi qua file này + PR + CI, không apply local.
+# ĐỔI AZ = đổi giá trị này qua PR (KHÔNG trỏ 1a nếu chưa có NAT/endpoint đa AZ — xem note ở var).
+fis_target_az = "ap-southeast-1c"
+
 enable_cloudflare_access        = true
 cloudflare_account_id           = "4903f08491f403370e1a2ae9c8aee84e"
 cloudflare_zone_id              = "b711c7ecbcb4efb9d909de520330f0bb"
@@ -15,6 +24,10 @@ cloudflare_allowed_emails = [
   "hiimtuu@gmail.com",
   "tutc.work@gmail.com",
   "trongtanaws@gmail.com",
+  # CDO02 — chủ trì diễn tập resilience Mandate 17. Không có quyền vào Grafana thì
+  # phải xem SLO qua `kubectl port-forward`, tức là người chạy drill lại phụ thuộc
+  # đúng đường mạng mà drill có thể làm gãy. Leader đã duyệt 30/07/2026.
+  "tainguyenduc2004@gmail.com",
   # Mentors — SSO access tới Grafana/Jaeger/ArgoCD UI qua Cloudflare Zero Trust (REL-17).
   "nghia.huynh@techxcorp.com",
   "toan.le@techxcorp.com",
@@ -113,3 +126,9 @@ audit_detection_trail_s3_retention_days = 30
 audit_detection_s3_data_event_arns = [
   "arn:aws:s3:::techx-tf3-197826770971-tfstate/",
 ]
+
+# Cost guardrails — Layer 1 (Cost Anomaly Detection) + Layer 2 (Budget hard ceiling).
+# Global services provisioned via the us-east-1 provider. Recipients fall back to
+# audit_detection_email_subscriptions above. Monthly ceiling 1300 USD = the
+# $300/week/TF ceiling projected monthly; anomaly reporting floor 30 USD.
+enable_cost_guardrails = true

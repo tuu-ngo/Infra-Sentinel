@@ -126,3 +126,9 @@ audit_detection_trail_s3_retention_days = 30
 audit_detection_s3_data_event_arns = [
   "arn:aws:s3:::techx-tf3-197826770971-tfstate/",
 ]
+
+# Cost guardrails — Layer 1 (Cost Anomaly Detection) + Layer 2 (Budget hard ceiling).
+# Global services provisioned via the us-east-1 provider. Recipients fall back to
+# audit_detection_email_subscriptions above. Monthly ceiling 1300 USD = the
+# $300/week/TF ceiling projected monthly; anomaly reporting floor 30 USD.
+enable_cost_guardrails = true
